@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FLAMA — Workflow Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ──────────────────────────────────────────────────── */
+:root {
+  --accent: #e8642a;
+  --accent-glow: rgba(232,100,42,0.18);
+  --accent-dim: #c04e1a;
+  --green: #22c55e;
+  --green-bg: rgba(34,197,94,0.1);
+  --red: #f87171;
+  --red-bg: rgba(248,113,113,0.1);
+  --blue: #60a5fa;
+  --blue-bg: rgba(96,165,250,0.1);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Inter', system-ui, sans-serif;
+  --transition: 0.18s cubic-bezier(0.4,0,0.2,1);
+}
+
+[data-theme="dark"] {
+  --bg: #0c0c0f;
+  --bg2: #111115;
+  --surface: #16161c;
+  --surface2: #1c1c24;
+  --surface3: #222230;
+  --border: rgba(255,255,255,0.06);
+  --border2: rgba(255,255,255,0.10);
+  --border3: rgba(255,255,255,0.16);
+  --text: #f1f0f5;
+  --text2: #8b8a9e;
+  --text3: #4a4960;
+  --shadow: 0 1px 3px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.6);
+  --json-bg: #0a0a0e;
+}
+
+[data-theme="light"] {
+  --bg: #f4f3f8;
+  --bg2: #eeedf4;
+  --surface: #ffffff;
+  --surface2: #f9f8fc;
+  --surface3: #f0eff6;
+  --border: rgba(0,0,0,0.06);
+  --border2: rgba(0,0,0,0.10);
+  --border3: rgba(0,0,0,0.16);
+  --text: #1a1928;
+  --text2: #5c5b72;
+  --text3: #9896b0;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.05);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+  --json-bg: #f0eef8;
+}
+
+/* ── RESET ───────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.5;
+  height: 100vh;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── LAYOUT ──────────────────────────────────────────────────── */
+.app {
+  display: grid;
+  grid-template-columns: 240px 1fr 360px;
+  grid-template-rows: 56px 1fr;
+  height: 100vh;
+}
+
+/* ── HEADER ──────────────────────────────────────────────────── */
+.header {
+  grid-column: 1 / -1;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 20px 0 24px;
+  gap: 0;
+  position: relative;
+  z-index: 10;
+}
+.logo-mark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+.logo-flame {
+  width: 28px;
+  height: 28px;
+  background: var(--accent);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.logo-text {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+.logo-text span { color: var(--accent); }
+.header-sep {
+  width: 1px;
+  height: 20px;
+  background: var(--border2);
+  margin: 0 16px;
+}
+.header-sub {
+  font-size: 11.5px;
+  color: var(--text3);
+  font-weight: 500;
+  letter-spacing: 0.1px;
+}
+.header-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* THEME SWITCH */
+.theme-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 100px;
+  padding: 4px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.theme-switch:hover { border-color: var(--border3); }
+.theme-opt {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text3);
+  transition: var(--transition);
+  cursor: pointer;
+  user-select: none;
+}
+.theme-opt.active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+[data-theme="dark"] .theme-opt.active { background: var(--surface3); }
+.theme-opt svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+.version-badge {
+  background: var(--accent-glow);
+  color: var(--accent);
+  border: 1px solid rgba(232,100,42,0.25);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 100px;
+  letter-spacing: 0.4px;
+}
+
+/* ── SIDEBAR ─────────────────────────────────────────────────── */
+.sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border3) transparent;
+}
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--border3); border-radius: 4px; }
+
+.sidebar-pad { padding: 20px 16px; }
+
+/* TYPE SELECTOR */
+.type-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 24px;
+}
+.type-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  padding: 12px 8px 10px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 0.4px;
+  transition: var(--transition);
+  font-family: var(--sans);
+}
+.type-btn .type-icon {
+  font-size: 20px;
+  display: block;
+  margin-bottom: 6px;
+}
+.type-btn:hover { border-color: var(--border3); color: var(--text); }
+.type-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(232,100,42,0.3);
+}
+
+/* SECTION LABEL */
+.s-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--text3);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.s-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* API SOURCE PILLS */
+.api-pills {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.api-pill {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  padding: 4px 11px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+  font-family: var(--sans);
+}
+.api-pill:hover { border-color: var(--accent); color: var(--accent); }
+.api-pill.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* MODEL CARDS */
+.model-list { display: flex; flex-direction: column; gap: 5px; }
+.model-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+}
+.model-card:hover { border-color: var(--border3); background: var(--surface3); }
+.model-card.selected {
+  border-color: var(--accent);
+  background: var(--accent-glow);
+}
+.model-card.selected::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--accent);
+  border-radius: 3px 0 0 3px;
+}
+.mc-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px; }
+.mc-name { font-size: 12px; font-weight: 600; color: var(--text); }
+.mc-cost { font-size: 10px; font-weight: 600; color: var(--green); background: var(--green-bg); padding: 2px 7px; border-radius: 100px; }
+.mc-class { font-family: var(--mono); font-size: 9.5px; color: var(--text3); margin-bottom: 2px; }
+.mc-note { font-size: 10px; color: var(--text2); }
+.mc-star { color: var(--accent); font-size: 10px; }
+
+/* ── MAIN PANEL ──────────────────────────────────────────────── */
+.main {
+  background: var(--bg);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border3) transparent;
+}
+.main::-webkit-scrollbar { width: 4px; }
+.main::-webkit-scrollbar-thumb { background: var(--border3); border-radius: 4px; }
+.main-pad { padding: 24px 28px; max-width: 680px; }
+
+/* SECTION CARD */
+.config-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow);
+}
+.cs-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text3);
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+/* COST BADGE */
+.cost-badge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+}
+.cb-label { font-size: 12px; color: var(--text2); font-weight: 500; }
+.cb-value { font-size: 15px; font-weight: 700; color: var(--accent); }
+
+/* TOGGLE ROW */
+.toggle-row {
+  display: flex;
+  gap: 6px;
+}
+.tog {
+  flex: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  padding: 9px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  transition: var(--transition);
+  font-family: var(--sans);
+  line-height: 1.3;
+}
+.tog-sub { font-size: 9px; color: inherit; opacity: .65; display: block; margin-top: 1px; font-weight: 400; }
+.tog:hover { border-color: var(--border3); color: var(--text); }
+.tog.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.tog.active .tog-sub { opacity: .8; }
+
+/* FORM FIELDS */
+.field { margin-bottom: 12px; }
+.field:last-child { margin-bottom: 0; }
+.field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text2);
+  margin-bottom: 6px;
+  letter-spacing: 0.1px;
+}
+.field input[type="text"],
+.field input[type="number"],
+.field textarea,
+.field select {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-family: var(--sans);
+  transition: var(--transition);
+  outline: none;
+  resize: vertical;
+  appearance: none;
+}
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.field input[type="number"] { width: auto; min-width: 80px; }
+textarea { min-height: 78px; }
+.field .hint { font-size: 10px; color: var(--text3); margin-top: 5px; }
+
+/* INLINE FIELDS ROW */
+.field-row { display: flex; gap: 12px; }
+.field-row .field { flex: 1; }
+
+/* REF SLOTS */
+.ref-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 10px;
+}
+.ref-slot {
+  background: var(--surface2);
+  border: 1px dashed var(--border3);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  transition: var(--transition);
+}
+.ref-slot:focus-within {
+  border-color: var(--accent);
+  border-style: solid;
+}
+.ref-slot-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text3);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.ref-slot input {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  width: 100%;
+  font-size: 11px;
+  font-family: var(--mono);
+  outline: none;
+}
+.ref-slot input::placeholder { color: var(--text3); }
+
+/* ALERTS */
+.alert {
+  border-radius: var(--radius-sm);
+  padding: 10px 13px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  margin-top: 10px;
+}
+.alert-warn { background: var(--red-bg); border: 1px solid rgba(248,113,113,0.2); color: var(--red); }
+.alert-info { background: var(--blue-bg); border: 1px solid rgba(96,165,250,0.2); color: var(--blue); }
+.alert-ok { background: var(--green-bg); border: 1px solid rgba(34,197,94,0.2); color: var(--green); }
+.alert strong { font-weight: 700; }
+code {
+  font-family: var(--mono);
+  font-size: 10px;
+  background: rgba(255,255,255,0.07);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+[data-theme="light"] code { background: rgba(0,0,0,0.07); }
+
+/* ── PREVIEW PANEL ───────────────────────────────────────────── */
+.preview {
+  background: var(--json-bg);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.preview-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 18px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.preview-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text3);
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+}
+.live-dot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--green);
+}
+.live-dot::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: blink 2s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+.preview-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+  padding: 16px 18px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border3) transparent;
+}
+.preview-scroll::-webkit-scrollbar { width: 4px; }
+.preview-scroll::-webkit-scrollbar-thumb { background: var(--border3); border-radius: 4px; }
+
+.json-out {
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.7;
+  white-space: pre;
+  color: #7c8fa6;
+}
+.jk { color: #7dd3fc; }
+.js { color: #86efac; }
+.jn { color: #fbbf24; }
+.jb { color: #e879f9; }
+
+/* GENERATE BAR */
+.gen-bar {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 14px 18px;
+  flex-shrink: 0;
+}
+.btn-gen {
+  width: 100%;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 13px 20px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.4px;
+  font-family: var(--sans);
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(232,100,42,0.35);
+}
+.btn-gen:hover {
+  background: var(--accent-dim);
+  box-shadow: 0 6px 20px rgba(232,100,42,0.45);
+  transform: translateY(-1px);
+}
+.btn-gen:active { transform: scale(0.98) translateY(0); }
+.btn-gen.ok { background: #16a34a; box-shadow: 0 4px 14px rgba(22,163,74,0.35); }
+.btn-gen svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ── HEADER ──────────────────────────────────────────────────── -->
+<header class="header">
+  <div class="logo-mark">
+    <div class="logo-flame">🔥</div>
+    <div class="logo-text"><span>FLAMA</span> Generator</div>
+  </div>
+  <div class="header-sep"></div>
+  <div class="header-sub">ComfyUI Workflow Builder</div>
+  <div class="header-actions">
+    <div class="theme-switch" onclick="toggleTheme()">
+      <div class="theme-opt active" id="opt-dark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        Dark
+      </div>
+      <div class="theme-opt" id="opt-light">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        Light
+      </div>
+    </div>
+    <div class="version-badge">v1.0</div>
+  </div>
+</header>
+
+<!-- ── SIDEBAR ──────────────────────────────────────────────────── -->
+<nav class="sidebar">
+<div class="sidebar-pad">
+
+  <div class="type-selector">
+    <button class="type-btn active" onclick="setType('image')" id="btn-type-image">
+      <span class="type-icon">🖼️</span>IMAGEN
+    </button>
+    <button class="type-btn" onclick="setType('video')" id="btn-type-video">
+      <span class="type-icon">🎬</span>VIDEO
+    </button>
+  </div>
+
+  <!-- IMAGE MODELS -->
+  <div id="img-model-section">
+    <div class="s-label">Fuente de API</div>
+    <div class="api-pills">
+      <button class="api-pill active" onclick="setImgSource('google')" id="tab-google">Google</button>
+      <button class="api-pill" onclick="setImgSource('fal')" id="tab-fal">fal.ai</button>
+      <button class="api-pill" onclick="setImgSource('openai')" id="tab-openai">OpenAI</button>
+    </div>
+
+    <div id="models-google" class="model-list">
+      <div class="model-card selected" onclick="selectImgModel(this,'NanoBanana2AIO','NanoBanana2AIO','~$0.04','Google AI Studio')" data-class="NanoBanana2AIO">
+        <div class="mc-head"><span class="mc-name">Nano Banana 2 AIO <span class="mc-star">★</span></span><span class="mc-cost">$0.04</span></div>
+        <div class="mc-class">NanoBanana2AIO</div>
+        <div class="mc-note">Gemini 3.1 Flash · Motor principal</div>
+      </div>
+    </div>
+
+    <div id="models-fal" class="model-list hidden">
+      <div class="model-card" onclick="selectImgModel(this,'Nano Banana Pro','NanaBanana2AIO','variable','fal.ai')" data-class="NanaBanana2AIO">
+        <div class="mc-head"><span class="mc-name">Nano Banana Pro</span><span class="mc-cost">variable</span></div>
+        <div class="mc-class">NanaBanana2AIO</div>
+        <div class="mc-note">vía fal.ai</div>
+      </div>
+      <div class="model-card" onclick="selectImgModel(this,'GPT Image 1.5','GPTImage15_fal','~$0.054','fal.ai')" data-class="GPTImage15_fal">
+        <div class="mc-head"><span class="mc-name">GPT Image 1.5</span><span class="mc-cost">$0.054</span></div>
+        <div class="mc-class">GPTImage15_fal</div>
+        <div class="mc-note">OpenAI vía fal</div>
+      </div>
+      <div class="model-card" onclick="selectImgModel(this,'GPT Image 2','GPTImage2_fal','~$0.054','fal.ai')" data-class="GPTImage2_fal">
+        <div class="mc-head"><span class="mc-name">GPT Image 2</span><span class="mc-cost">$0.054</span></div>
+        <div class="mc-class">GPTImage2_fal</div>
+        <div class="mc-note">OpenAI v2 vía fal</div>
+      </div>
+      <div class="model-card" onclick="selectImgModel(this,'Flux Pro','FluxPro_fal','~$0.032','fal.ai')" data-class="FluxPro_fal">
+        <div class="mc-head"><span class="mc-name">Flux Pro</span><span class="mc-cost">$0.032</span></div>
+        <div class="mc-class">FluxPro_fal</div>
+        <div class="mc-note">Fotorrealismo general</div>
+      </div>
+      <div class="model-card" onclick="selectImgModel(this,'Flux Ultra','FluxUltra_fal','~$0.06','fal.ai')" data-class="FluxUltra_fal">
+        <div class="mc-head"><span class="mc-name">Flux Ultra</span><span class="mc-cost">$0.06</span></div>
+        <div class="mc-class">FluxUltra_fal</div>
+        <div class="mc-note">Máxima calidad Flux</div>
+      </div>
+      <div class="model-card" onclick="selectImgModel(this,'Google Imagen 4','Imagen4Preview_fal','~$0.04','fal.ai')" data-class="Imagen4Preview_fal">
+        <div class="mc-head"><span class="mc-name">Google Imagen 4</span><span class="mc-cost">$0.04</span></div>
+        <div class="mc-class">Imagen4Preview_fal</div>
+        <div class="mc-note">Google vía fal</div>
+      </div>
+      <div class="model-card" onclick="selectImgModel(this,'Ideogram v3','Ideogramv3_fal','~$0.03','fal.ai')" data-class="Ideogramv3_fal">
+        <div class="mc-head"><span class="mc-name">Ideogram v3</span><span class="mc-cost">$0.03</span></div>
+        <div class="mc-class">Ideogramv3_fal</div>
+        <div class="mc-note">Texto en imagen</div>
+      </div>
+    </div>
+
+    <div id="models-openai" class="model-list hidden">
+      <div class="model-card" onclick="selectImgModel(this,'GPT Image 2 (nativo)','GPTImage2_fal','~$0.054','OpenAI nativa')" data-class="GPTImage2_fal">
+        <div class="mc-head"><span class="mc-name">GPT Image 2 <span class="mc-star">★</span></span><span class="mc-cost">$0.054</span></div>
+        <div class="mc-class">GPTImage2_fal</div>
+        <div class="mc-note">OpenAI directo · Más preciso</div>
+      </div>
+      <div class="model-card" onclick="selectImgModel(this,'GPT Image 1.5 (nativo)','GPTImage15_fal','~$0.054','OpenAI nativa')" data-class="GPTImage15_fal">
+        <div class="mc-head"><span class="mc-name">GPT Image 1.5</span><span class="mc-cost">$0.054</span></div>
+        <div class="mc-class">GPTImage15_fal</div>
+        <div class="mc-note">OpenAI directo</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIDEO ENGINES -->
+  <div id="vid-engine-section" class="hidden">
+    <div class="s-label">Motor de video</div>
+    <div class="api-pills">
+      <button class="api-pill active" onclick="setVidSource('fal')" id="vtab-fal">fal.ai</button>
+      <button class="api-pill" onclick="setVidSource('runway')" id="vtab-runway">Runway</button>
+    </div>
+
+    <div id="engines-fal" class="model-list">
+      <div class="model-card selected" onclick="selectVidEngine(this,'KlingV3Pro_fal','KlingV3Pro_fal','~$0.50','★★★★★','Fiel al producto')" data-class="KlingV3Pro_fal">
+        <div class="mc-head"><span class="mc-name">Kling V3 Pro <span class="mc-star">★</span></span><span class="mc-cost">$0.50</span></div>
+        <div class="mc-class">KlingV3Pro_fal</div>
+        <div class="mc-note">Motor principal · Fiel al producto</div>
+      </div>
+      <div class="model-card" onclick="selectVidEngine(this,'Veo31_fal','Veo31_fal','~$0.80','★★★★★','Premium')" data-class="Veo31_fal">
+        <div class="mc-head"><span class="mc-name">Veo 3.1 <span class="mc-star">★</span></span><span class="mc-cost">$0.80</span></div>
+        <div class="mc-class">Veo31_fal</div>
+        <div class="mc-note">Cinematográfico premium · 1080p</div>
+      </div>
+      <div class="model-card" onclick="selectVidEngine(this,'Veo31Fast_fal','Veo31Fast_fal','~$0.50','★★★★','Rápido')" data-class="Veo31Fast_fal">
+        <div class="mc-head"><span class="mc-name">Veo 3.1 Fast</span><span class="mc-cost">$0.50</span></div>
+        <div class="mc-class">Veo31Fast_fal</div>
+        <div class="mc-note">Balance calidad / velocidad</div>
+      </div>
+      <div class="model-card" onclick="selectVidEngine(this,'KlingV3Standard_fal','KlingV3Standard_fal','~$0.30','★★★★','Económico')" data-class="KlingV3Standard_fal">
+        <div class="mc-head"><span class="mc-name">Kling V3 Standard</span><span class="mc-cost">$0.30</span></div>
+        <div class="mc-class">KlingV3Standard_fal</div>
+        <div class="mc-note">Versión económica V3</div>
+      </div>
+      <div class="model-card" onclick="selectVidEngine(this,'KlingOmniImageToVideo_fal','KlingOmniImageToVideo_fal','~$0.40','★★★★','Start+End frame')" data-class="KlingOmniImageToVideo_fal">
+        <div class="mc-head"><span class="mc-name">Kling Omni I2V</span><span class="mc-cost">$0.40</span></div>
+        <div class="mc-class">KlingOmniImageToVideo_fal</div>
+        <div class="mc-note">Start + End frame</div>
+      </div>
+      <div class="model-card" onclick="selectVidEngine(this,'SeedanceImageToVideo_fal','SeedanceImageToVideo_fal','~$1.21','★★★','Pruebas')" data-class="SeedanceImageToVideo_fal">
+        <div class="mc-head"><span class="mc-name">Seedance</span><span class="mc-cost">$1.21</span></div>
+        <div class="mc-class">SeedanceImageToVideo_fal</div>
+        <div class="mc-note">Solo pruebas rápidas</div>
+      </div>
+      <div class="model-card" onclick="selectVidEngine(this,'Sora2Pro_fal','Sora2Pro_fal','~$2.00','★★','No para producto')" data-class="Sora2Pro_fal">
+        <div class="mc-head"><span class="mc-name">Sora 2 Pro</span><span class="mc-cost" style="color:var(--red);background:var(--red-bg)">$2.00</span></div>
+        <div class="mc-class">Sora2Pro_fal</div>
+        <div class="mc-note" style="color:var(--red)">⚠ No producto luxury</div>
+      </div>
+    </div>
+
+    <div id="engines-runway" class="model-list hidden">
+      <div class="model-card" onclick="selectVidEngine(this,'RunwayImageToVideoFLAMA','gen4.5','~50 créditos','★★★★★','Portfolio')" data-class="RunwayImageToVideoFLAMA" data-model="gen4.5">
+        <div class="mc-head"><span class="mc-name">Gen4.5 <span class="mc-star">★</span></span><span class="mc-cost">~50 créd.</span></div>
+        <div class="mc-class">RunwayImageToVideoFLAMA</div>
+        <div class="mc-note">Portfolio · spots de cliente</div>
+      </div>
+      <div class="model-card" onclick="selectVidEngine(this,'RunwayImageToVideoFLAMA','gen4_turbo','~30 créditos','★★★★','Iteración')" data-class="RunwayImageToVideoFLAMA" data-model="gen4_turbo">
+        <div class="mc-head"><span class="mc-name">Gen4 Turbo</span><span class="mc-cost">~30 créd.</span></div>
+        <div class="mc-class">RunwayImageToVideoFLAMA</div>
+        <div class="mc-note">Pruebas rápidas · 1080p</div>
+      </div>
+      <div class="model-card" onclick="selectVidEngine(this,'RunwayImageToVideoFLAMA','veo3.1','~70 créditos','★★★★★','Brand films')" data-class="RunwayImageToVideoFLAMA" data-model="veo3.1">
+        <div class="mc-head"><span class="mc-name">Veo3.1 <span class="mc-star">★</span></span><span class="mc-cost">~70 créd.</span></div>
+        <div class="mc-class">RunwayImageToVideoFLAMA</div>
+        <div class="mc-note">Máxima calidad · brand films</div>
+      </div>
+      <div class="model-card" onclick="selectVidEngine(this,'RunwayImageToVideoFLAMA','veo3.1_fast','~50 créditos','★★★★','Balance')" data-class="RunwayImageToVideoFLAMA" data-model="veo3.1_fast">
+        <div class="mc-head"><span class="mc-name">Veo3.1 Fast</span><span class="mc-cost">~50 créd.</span></div>
+        <div class="mc-class">RunwayImageToVideoFLAMA</div>
+        <div class="mc-note">Balance calidad / velocidad</div>
+      </div>
+      <div class="model-card" onclick="selectVidEngine(this,'RunwayImageToVideoFLAMA','seedance2','~40 créditos','★★★★','Alternativa')" data-class="RunwayImageToVideoFLAMA" data-model="seedance2">
+        <div class="mc-head"><span class="mc-name">Seedance2</span><span class="mc-cost">~40 créd.</span></div>
+        <div class="mc-class">RunwayImageToVideoFLAMA</div>
+        <div class="mc-note">Alternativa a fal.ai Seedance</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</nav>
+
+<!-- ── MAIN PANEL ──────────────────────────────────────────────── -->
+<main class="main">
+<div class="main-pad">
+
+  <!-- IMAGE CONFIG -->
+  <div id="config-image">
+
+    <div class="config-section">
+      <div class="cs-title">Modelo activo</div>
+      <div class="cost-badge">
+        <span class="cb-label" id="img-model-display">NanoBanana2AIO — Google AI Studio</span>
+        <span class="cb-value" id="img-cost-display">~$0.04/img</span>
+      </div>
+    </div>
+
+    <div class="config-section">
+      <div class="cs-title">Calidad y formato</div>
+      <div class="field">
+        <label>Resolución</label>
+        <div class="toggle-row">
+          <button class="tog active" onclick="setImgQuality(this,'2K')">2K<span class="tog-sub">standard</span></button>
+          <button class="tog" onclick="setImgQuality(this,'4K')">4K<span class="tog-sub">premium</span></button>
+        </div>
+      </div>
+      <div class="field" style="margin-top:10px">
+        <label>Aspect ratio</label>
+        <div class="toggle-row">
+          <button class="tog active" onclick="setImgRatio(this,'9:16')">9:16<span class="tog-sub">vertical</span></button>
+          <button class="tog" onclick="setImgRatio(this,'16:9')">16:9<span class="tog-sub">horizontal</span></button>
+          <button class="tog" onclick="setImgRatio(this,'1:1')">1:1<span class="tog-sub">cuadrado</span></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="config-section">
+      <div class="cs-title">Referencias de imagen</div>
+      <div class="toggle-row">
+        <button class="tog active" onclick="setImgRefs(this,false)">Sin referencias</button>
+        <button class="tog" onclick="setImgRefs(this,true)">Con referencias (1–6)</button>
+      </div>
+      <div id="ref-slots-container" class="hidden">
+        <div class="ref-grid">
+          <div class="ref-slot"><div class="ref-slot-label">IMG 1</div><input type="text" placeholder="archivo.png" id="ref0" oninput="updatePreview()"></div>
+          <div class="ref-slot"><div class="ref-slot-label">IMG 2</div><input type="text" placeholder="archivo.png" id="ref1" oninput="updatePreview()"></div>
+          <div class="ref-slot"><div class="ref-slot-label">IMG 3</div><input type="text" placeholder="archivo.png" id="ref2" oninput="updatePreview()"></div>
+          <div class="ref-slot"><div class="ref-slot-label">IMG 4</div><input type="text" placeholder="archivo.png" id="ref3" oninput="updatePreview()"></div>
+          <div class="ref-slot"><div class="ref-slot-label">IMG 5</div><input type="text" placeholder="archivo.png" id="ref4" oninput="updatePreview()"></div>
+          <div class="ref-slot"><div class="ref-slot-label">IMG 6</div><input type="text" placeholder="archivo.png" id="ref5" oninput="updatePreview()"></div>
+        </div>
+        <div class="alert alert-info" style="margin-top:8px">Los archivos deben estar en <code>ComfyUI/input/</code> — solo nombre, sin ruta.</div>
+      </div>
+    </div>
+
+    <div class="config-section">
+      <div class="cs-title">Prompt</div>
+      <div class="field">
+        <label>Descripción de imagen</label>
+        <textarea id="img-prompt" placeholder="Luxury agave oil hair serum bottle on black marble surface, dramatic studio lighting, 3/4 editorial angle, photorealistic, product photography..." oninput="updatePreview()"></textarea>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Nº de imágenes</label>
+          <input type="number" value="1" min="1" max="4" id="img-count" oninput="updatePreview()">
+        </div>
+        <div class="field">
+          <label>Seed <span style="color:var(--text3);font-weight:400">(−1 aleatorio)</span></label>
+          <input type="number" value="-1" id="img-seed" style="width:110px" oninput="updatePreview()">
+        </div>
+      </div>
+    </div>
+
+    <div class="config-section">
+      <div class="cs-title">Prefijo de salida</div>
+      <div class="field">
+        <input type="text" id="img-prefix" value="FLAMA/output" oninput="updatePreview()">
+        <div class="hint">Guardará en <code>ComfyUI/output/{prefijo}_001.png</code></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- VIDEO CONFIG -->
+  <div id="config-video" class="hidden">
+
+    <div class="config-section">
+      <div class="cs-title">Motor activo</div>
+      <div class="cost-badge">
+        <span class="cb-label" id="vid-engine-display">KlingV3Pro_fal — fal.ai</span>
+        <span class="cb-value" id="vid-cost-display">~$0.50</span>
+      </div>
+    </div>
+
+    <div class="config-section">
+      <div class="cs-title">Imagen de entrada</div>
+      <div class="field">
+        <label>Archivo en <code>ComfyUI/input/</code></label>
+        <input type="text" id="vid-img" placeholder="mi_producto.png" oninput="updatePreview()">
+      </div>
+      <div id="vid-endframe-field" class="field hidden">
+        <label>Frame final <span style="color:var(--text3);font-weight:400">(solo Kling Omni)</span></label>
+        <input type="text" id="vid-endimg" placeholder="frame_final.png" oninput="updatePreview()">
+      </div>
+    </div>
+
+    <div class="config-section">
+      <div class="cs-title">Formato y duración</div>
+      <div class="field">
+        <label>Aspect ratio</label>
+        <div class="toggle-row">
+          <button class="tog" onclick="setVidRatio(this,'9:16')">9:16<span class="tog-sub">vertical</span></button>
+          <button class="tog active" onclick="setVidRatio(this,'16:9')">16:9<span class="tog-sub">horizontal</span></button>
+        </div>
+      </div>
+      <div class="field" style="margin-top:10px">
+        <label>Duración</label>
+        <div class="toggle-row">
+          <button class="tog active" onclick="setVidDuration(this,'5')">5 seg</button>
+          <button class="tog" onclick="setVidDuration(this,'8')">8 seg</button>
+          <button class="tog" onclick="setVidDuration(this,'10')">10 seg</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="config-section hidden" id="vid-res-section">
+      <div class="cs-title">Resolución <span style="color:var(--text3);font-size:9px;letter-spacing:0;text-transform:none;font-weight:400">(solo Seedance)</span></div>
+      <div class="toggle-row">
+        <button class="tog active" onclick="setVidRes(this,'720p')">720p</button>
+        <button class="tog" onclick="setVidRes(this,'1080p')">1080p</button>
+      </div>
+    </div>
+
+    <div class="config-section">
+      <div class="cs-title">Prompt de movimiento</div>
+      <div class="field">
+        <textarea id="vid-prompt" placeholder="Slow camera pull-back revealing the bottle from extreme close-up, cinematic lighting shifts, product remains sharp and in focus, luxury feel..." oninput="updatePreview()"></textarea>
+      </div>
+    </div>
+
+    <div id="sora-warn" class="alert alert-warn hidden">⚠ <strong>Sora 2 Pro</strong> reinventa el producto añadiendo elementos no pedidos. Solo worldbuilding o naturaleza, nunca producto luxury.</div>
+    <div id="seedance-warn" class="alert alert-warn hidden">⚠ <strong>Seedance vía fal.ai</strong> cuesta ~$1.21/clip — más caro que Veo/Kling para la misma calidad. Solo pruebas rápidas.</div>
+    <div id="runway-info" class="alert alert-ok hidden">✓ <strong>RunwayImageToVideoFLAMA</strong> guarda el video automáticamente en <code>/output</code>. No requiere nodo SaveVideoFromURL adicional.</div>
+
+    <div class="config-section">
+      <div class="cs-title">Prefijo de salida</div>
+      <div class="field">
+        <input type="text" id="vid-prefix" value="FLAMA/video" oninput="updatePreview()">
+        <div class="hint">Guardará en <code>ComfyUI/output/{prefijo}_001.mp4</code></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</main>
+
+<!-- ── PREVIEW PANEL ───────────────────────────────────────────── -->
+<aside class="preview">
+  <div class="preview-header">
+    <span class="preview-title">Preview JSON</span>
+    <span class="live-dot">Live</span>
+  </div>
+  <div class="preview-scroll">
+    <pre class="json-out" id="json-preview"></pre>
+  </div>
+  <div class="gen-bar">
+    <button class="btn-gen" id="btn-generate" onclick="generateJSON()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Generar y descargar JSON
+    </button>
+  </div>
+</aside>
+
+</div>
+
+<script>
+// ── THEME ──────────────────────────────────────────────────────
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.getElementById('opt-dark').classList.toggle('active', !isDark);
+  document.getElementById('opt-light').classList.toggle('active', isDark);
+}
+
+// ── STATE ──────────────────────────────────────────────────────
+const state = {
+  type: 'image',
+  img: {
+    source: 'google', classType: 'NanoBanana2AIO', runwayModel: null,
+    cost: '~$0.04', quality: '2K', ratio: '9:16', hasRefs: false, refs: [],
+    prompt: '', count: 1, seed: -1, prefix: 'FLAMA/output'
+  },
+  vid: {
+    source: 'fal', classType: 'KlingV3Pro_fal', runwayModel: 'gen4.5',
+    cost: '~$0.50', ratio: '16:9', duration: '5', resolution: '720p',
+    img: '', endImg: '', prompt: '', prefix: 'FLAMA/video'
+  }
+};
+
+function setType(t) {
+  state.type = t;
+  document.getElementById('btn-type-image').classList.toggle('active', t==='image');
+  document.getElementById('btn-type-video').classList.toggle('active', t==='video');
+  document.getElementById('config-image').classList.toggle('hidden', t!=='image');
+  document.getElementById('config-video').classList.toggle('hidden', t!=='video');
+  document.getElementById('img-model-section').classList.toggle('hidden', t!=='image');
+  document.getElementById('vid-engine-section').classList.toggle('hidden', t!=='video');
+  updatePreview();
+}
+
+function setImgSource(src) {
+  state.img.source = src;
+  ['google','fal','openai'].forEach(s => {
+    document.getElementById('tab-'+s).classList.toggle('active', s===src);
+    document.getElementById('models-'+s).classList.toggle('hidden', s!==src);
+  });
+  const cards = document.querySelectorAll('#models-'+src+' .model-card');
+  if (cards.length) {
+    document.querySelectorAll('.model-card').forEach(c => c.classList.remove('selected'));
+    cards[0].click();
+  }
+}
+
+function selectImgModel(el, name, classType, cost, source) {
+  document.querySelectorAll('.model-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  state.img.classType = classType;
+  state.img.cost = cost;
+  document.getElementById('img-model-display').textContent = name + ' — ' + source;
+  document.getElementById('img-cost-display').textContent = cost + '/img';
+  updatePreview();
+}
+
+function setImgQuality(el, q) {
+  el.closest('.toggle-row').querySelectorAll('.tog').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  state.img.quality = q;
+  updatePreview();
+}
+
+function setImgRatio(el, r) {
+  el.closest('.toggle-row').querySelectorAll('.tog').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  state.img.ratio = r;
+  updatePreview();
+}
+
+function setImgRefs(el, has) {
+  el.closest('.toggle-row').querySelectorAll('.tog').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  state.img.hasRefs = has;
+  document.getElementById('ref-slots-container').classList.toggle('hidden', !has);
+  updatePreview();
+}
+
+function setVidSource(src) {
+  state.vid.source = src;
+  ['fal','runway'].forEach(s => {
+    document.getElementById('vtab-'+s).classList.toggle('active', s===src);
+    document.getElementById('engines-'+s).classList.toggle('hidden', s!==src);
+  });
+  const cards = document.querySelectorAll('#engines-'+src+' .model-card');
+  if (cards.length) {
+    document.querySelectorAll('#vid-engine-section .model-card').forEach(c => c.classList.remove('selected'));
+    cards[0].click();
+  }
+}
+
+function selectVidEngine(el, classType, modelOrStars, cost, stars, note) {
+  document.querySelectorAll('#vid-engine-section .model-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  state.vid.classType = classType;
+  state.vid.cost = cost;
+  if (classType === 'RunwayImageToVideoFLAMA') state.vid.runwayModel = modelOrStars;
+  document.getElementById('vid-engine-display').textContent = classType + (state.vid.runwayModel && classType==='RunwayImageToVideoFLAMA' ? ' / ' + state.vid.runwayModel : '');
+  document.getElementById('vid-cost-display').textContent = cost;
+  document.getElementById('sora-warn').classList.toggle('hidden', classType !== 'Sora2Pro_fal');
+  document.getElementById('seedance-warn').classList.toggle('hidden', classType !== 'SeedanceImageToVideo_fal');
+  document.getElementById('runway-info').classList.toggle('hidden', classType !== 'RunwayImageToVideoFLAMA');
+  document.getElementById('vid-endframe-field').classList.toggle('hidden', classType !== 'KlingOmniImageToVideo_fal');
+  document.getElementById('vid-res-section').classList.toggle('hidden', classType !== 'SeedanceImageToVideo_fal');
+  updatePreview();
+}
+
+function setVidRatio(el, r) {
+  el.closest('.toggle-row').querySelectorAll('.tog').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  state.vid.ratio = r;
+  updatePreview();
+}
+
+function setVidDuration(el, d) {
+  el.closest('.toggle-row').querySelectorAll('.tog').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  state.vid.duration = d;
+  updatePreview();
+}
+
+function setVidRes(el, r) {
+  el.closest('.toggle-row').querySelectorAll('.tog').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  state.vid.resolution = r;
+  updatePreview();
+}
+
+// ── JSON BUILD ─────────────────────────────────────────────────
+function buildImageWorkflow() {
+  const s = state.img;
+  const prompt = document.getElementById('img-prompt').value || 'Describe tu imagen aquí...';
+  const count = parseInt(document.getElementById('img-count').value) || 1;
+  const seed = parseInt(document.getElementById('img-seed').value) ?? -1;
+  const prefix = document.getElementById('img-prefix').value || 'FLAMA/output';
+  const refs = s.hasRefs ? [0,1,2,3,4,5].map(i=>{const el=document.getElementById('ref'+i);return el?el.value:'';}).filter(v=>v.trim()!=='') : [];
+  let nodes=[],links=[],lastNodeId=0,lastLinkId=0;
+  const ct = s.classType;
+  let genNodeId = ++lastNodeId;
+  let saveNodeId = ++lastNodeId;
+  let genWidgets = [];
+  if (ct==='NanoBanana2AIO'||ct==='NanaBanana2AIO') genWidgets=[prompt,count,s.ratio,s.quality,1.0,seed];
+  else if (ct==='GPTImage15_fal'||ct==='GPTImage2_fal') genWidgets=[prompt,s.quality==='4K'?'hd':'standard',s.ratio,count,seed];
+  else genWidgets=[prompt,count,s.ratio,s.quality,seed];
+  let refNodeIds=[];
+  if (s.hasRefs && refs.length>0) {
+    refs.forEach((ref,i)=>{
+      const nid=++lastNodeId; refNodeIds.push(nid);
+      nodes.push({id:nid,type:'LoadImage',pos:[20,20+i*120],size:{'0':260,'1':100},flags:{},order:i,mode:0,inputs:[],outputs:[{name:'IMAGE',type:'IMAGE',links:[]}],properties:{'Node name for S&R':'LoadImage'},widgets_values:[ref,'image'],_meta:{title:'Referencia '+(i+1)}});
+    });
+  }
+  let genInputs=refs.length>0?refs.map((_,i)=>({name:'image_'+(i+1),type:'IMAGE',link:++lastLinkId})):[];
+  refNodeIds.forEach((rid,i)=>{
+    const lid=i+1;
+    links.push({id:lid,origin_id:rid,origin_slot:0,target_id:genNodeId,target_slot:i,type:'IMAGE'});
+    nodes.find(n=>n.id===rid).outputs[0].links.push(lid);
+  });
+  lastLinkId=refNodeIds.length;
+  const imgLinkId=++lastLinkId;
+  nodes.push({id:genNodeId,type:ct,pos:[320,100],size:{'0':380,'1':200},flags:{},order:refNodeIds.length,mode:0,inputs:genInputs,outputs:[{name:'IMAGE',type:'IMAGE',links:[imgLinkId]}],properties:{'Node name for S&R':ct},widgets_values:genWidgets,_meta:{title:ct}});
+  nodes.push({id:saveNodeId,type:'SaveImage',pos:[740,100],size:{'0':260,'1':120},flags:{},order:refNodeIds.length+1,mode:0,inputs:[{name:'images',type:'IMAGE',link:imgLinkId}],outputs:[],properties:{'Node name for S&R':'SaveImage'},widgets_values:[prefix],_meta:{title:'Guardar Imagen'}});
+  links.push({id:imgLinkId,origin_id:genNodeId,origin_slot:0,target_id:saveNodeId,target_slot:0,type:'IMAGE'});
+  return {last_node_id:saveNodeId,last_link_id:lastLinkId,nodes,links,groups:[],config:{},extra:{},version:0.4};
+}
+
+function buildVideoWorkflow() {
+  const s = state.vid;
+  const prompt = document.getElementById('vid-prompt').value || 'Smooth cinematic movement, product focus...';
+  const imgFile = document.getElementById('vid-img').value || 'imagen.png';
+  const endImgFile = document.getElementById('vid-endimg').value || '';
+  const prefix = document.getElementById('vid-prefix').value || 'FLAMA/video';
+  const ct = s.classType;
+  const isRunway = ct==='RunwayImageToVideoFLAMA';
+  let nodes=[],links=[];
+  const loadImgId=1,genId=2,saveId=3,loadEndId=4;
+  nodes.push({id:loadImgId,type:'LoadImage',pos:[20,100],size:{'0':260,'1':100},flags:{},order:0,mode:0,inputs:[],outputs:[{name:'IMAGE',type:'IMAGE',links:[1]}],properties:{'Node name for S&R':'LoadImage'},widgets_values:[imgFile,'image'],_meta:{title:'Imagen de entrada'}});
+  if (ct==='KlingOmniImageToVideo_fal'&&endImgFile) nodes.push({id:loadEndId,type:'LoadImage',pos:[20,240],size:{'0':260,'1':100},flags:{},order:1,mode:0,inputs:[],outputs:[{name:'IMAGE',type:'IMAGE',links:[5]}],properties:{'Node name for S&R':'LoadImage'},widgets_values:[endImgFile,'image'],_meta:{title:'Frame final'}});
+  let genWidgets=[],genInputs=[{name:'image',type:'IMAGE',link:1}];
+  if (ct==='KlingV3Pro_fal'||ct==='KlingV3Standard_fal'){genWidgets=[prompt,s.duration,s.ratio,'standard','blur, distort, low quality',0.5,false,-1];genInputs=[{name:'image',type:'IMAGE',link:1}];}
+  else if (ct==='Veo31_fal'||ct==='Veo31Fast_fal'){genWidgets=[prompt,s.duration+'s',s.ratio,'1080p',false,-1];genInputs=[{name:'first_frame',type:'IMAGE',link:1}];}
+  else if (ct==='KlingOmniImageToVideo_fal'){genWidgets=[prompt,s.duration,1,-1];genInputs=[{name:'start_image',type:'IMAGE',link:1}];if(endImgFile)genInputs.push({name:'end_image',type:'IMAGE',link:5});}
+  else if (ct==='SeedanceImageToVideo_fal'){genWidgets=[prompt,s.resolution,s.ratio,s.duration,false,-1];genInputs=[{name:'image',type:'IMAGE',link:1}];}
+  else if (ct==='Sora2Pro_fal'){genWidgets=[prompt,s.ratio,'1080p',parseInt(s.duration),false,-1];genInputs=[{name:'image',type:'IMAGE',link:1}];}
+  else if (ct==='RunwayImageToVideoFLAMA'){genWidgets=[prompt,s.duration,s.runwayModel,s.ratio,prefix];genInputs=[{name:'image',type:'IMAGE',link:1}];}
+  nodes.push({id:genId,type:ct,pos:[320,100],size:{'0':380,'1':220},flags:{},order:2,mode:0,inputs:genInputs,outputs:[{name:isRunway?'filepath':'video_url',type:'STRING',links:isRunway?[]:[2]}],properties:{'Node name for S&R':ct},widgets_values:genWidgets,_meta:{title:ct}});
+  let lastLink=2,lastNode=3;
+  const linksArr=[{id:1,origin_id:loadImgId,origin_slot:0,target_id:genId,target_slot:0,type:'IMAGE'}];
+  if (ct==='KlingOmniImageToVideo_fal'&&endImgFile) linksArr.push({id:5,origin_id:loadEndId,origin_slot:0,target_id:genId,target_slot:1,type:'IMAGE'});
+  if (!isRunway){nodes.push({id:saveId,type:'SaveVideoFromURL',pos:[740,100],size:{'0':280,'1':120},flags:{},order:3,mode:0,inputs:[{name:'video_url',type:'STRING',link:2}],outputs:[],properties:{'Node name for S&R':'SaveVideoFromURL'},widgets_values:[prefix],_meta:{title:'Guardar Video URL (FLAMA)'}});linksArr.push({id:2,origin_id:genId,origin_slot:0,target_id:saveId,target_slot:0,type:'STRING'});lastNode=3;lastLink=2;}
+  else{lastNode=2;lastLink=1;}
+  return {last_node_id:lastNode,last_link_id:lastLink,nodes,links:linksArr,groups:[],config:{},extra:{},version:0.4};
+}
+
+// ── PREVIEW ────────────────────────────────────────────────────
+function hl(json) {
+  json = json.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,m=>{
+    if (/^"/.test(m)) return /:$/.test(m)?'<span class="jk">'+m+'</span>':'<span class="js">'+m+'</span>';
+    if (/true|false/.test(m)) return '<span class="jb">'+m+'</span>';
+    return '<span class="jn">'+m+'</span>';
+  });
+}
+
+function updatePreview() {
+  if (state.type==='image') {
+    state.img.prompt = document.getElementById('img-prompt').value;
+    state.img.count = parseInt(document.getElementById('img-count').value)||1;
+    state.img.seed = parseInt(document.getElementById('img-seed').value)??-1;
+    state.img.prefix = document.getElementById('img-prefix').value;
+    if (state.img.hasRefs) state.img.refs=[0,1,2,3,4,5].map(i=>{const el=document.getElementById('ref'+i);return el?el.value:'';}).filter(v=>v.trim()!=='');
+  } else {
+    state.vid.prompt = document.getElementById('vid-prompt').value;
+    state.vid.img = document.getElementById('vid-img').value;
+    state.vid.prefix = document.getElementById('vid-prefix').value;
+  }
+  const wf = state.type==='image'?buildImageWorkflow():buildVideoWorkflow();
+  document.getElementById('json-preview').innerHTML = hl(JSON.stringify(wf,null,2));
+}
+
+// ── DOWNLOAD ───────────────────────────────────────────────────
+function generateJSON() {
+  const wf = state.type==='image'?buildImageWorkflow():buildVideoWorkflow();
+  const blob = new Blob([JSON.stringify(wf,null,2)],{type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const ts = new Date().toISOString().slice(0,16).replace('T','_').replace(':','h');
+  const ct = state.type==='image'?state.img.classType:state.vid.classType;
+  a.href=url; a.download='FLAMA_'+state.type+'_'+ct+'_'+ts+'.json'; a.click();
+  URL.revokeObjectURL(url);
+  const btn = document.getElementById('btn-generate');
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:16px;height:16px"><polyline points="20 6 9 17 4 12"/></svg> JSON descargado';
+  btn.classList.add('ok');
+  setTimeout(()=>{
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:16px;height:16px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Generar y descargar JSON';
+    btn.classList.remove('ok');
+  },2500);
+}
+
+updatePreview();
+</script>
+</body>
+</html>
