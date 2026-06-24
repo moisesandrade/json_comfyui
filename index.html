@@ -1,785 +1,1489 @@
 <!DOCTYPE html>
 <html lang="es" class="dark">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FLAMA.MEDIA — ComfyUI Workflow Architect v3.2</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-tailwind.config = {
-  darkMode: 'class',
-  theme: {
-    extend: {
-      colors: {
-        flama: {
-          50:'#fff5ec',100:'#ffe6d3',200:'#ffcaaa',300:'#ffa176',
-          400:'#ff6e41',500:'#e8642a',600:'#c04e1a',700:'#9a3a10',
-          800:'#7a2c0c',900:'#5c2009',950:'#380f04'
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLAMA.MEDIA — ComfyUI Workflow Architect v3.1</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        flama: {
+                            50: '#fff5ec',
+                            100: '#ffe6d3',
+                            200: '#ffcaaa',
+                            300: '#ffa176',
+                            400: '#ff6e41',
+                            500: '#ff461a',
+                            600: '#f02b0f',
+                            700: '#c71d0f',
+                            800: '#9e1a12',
+                            900: '#7f1912',
+                            950: '#450906',
+                        }
+                    }
+                }
+            }
         }
-      },
-      fontFamily: { mono: ['"JetBrains Mono"','monospace'] }
-    }
-  }
-}
-</script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/lucide@latest"></script>
-<style>
-  body { font-family: 'Inter', system-ui, sans-serif; }
-  .comfy-grid {
-    background-color: #080c14;
-    background-image: radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
-    background-size: 22px 22px;
-  }
-  .light .comfy-grid {
-    background-color: #eef0f5;
-    background-image: radial-gradient(circle, rgba(0,0,0,0.07) 1px, transparent 1px);
-  }
-  ::-webkit-scrollbar { width: 5px; height: 5px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: rgba(232,100,42,0.35); border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(232,100,42,0.6); }
-  .node-cable { stroke-dasharray: 6 3; animation: dash 1s linear infinite; }
-  @keyframes dash { to { stroke-dashoffset: -18; } }
-  .json-key { color: #7dd3fc; }
-  .json-str { color: #86efac; }
-  .json-num { color: #fbbf24; }
-  .json-bool { color: #e879f9; }
-  .light .json-key { color: #0369a1; }
-  .light .json-str { color: #166534; }
-  .light .json-num { color: #92400e; }
-  .light .json-bool { color: #7c3aed; }
-</style>
+    </script>
+    <!-- Lucide Icons via ES Modules / Unpkg -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Estilos personalizados para simular la rejilla y cables de ComfyUI */
+        .comfy-grid {
+            background-size: 20px 20px;
+            background-image: radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-color: #0b0f19;
+        }
+        .scrollbar-custom::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .scrollbar-custom::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.3);
+        }
+        .scrollbar-custom::-webkit-scrollbar-thumb {
+            background: rgba(249, 115, 22, 0.4);
+            border-radius: 4px;
+        }
+        .scrollbar-custom::-webkit-scrollbar-thumb:hover {
+            background: rgba(249, 115, 22, 0.7);
+        }
+
+        /* ── LIGHT MODE OVERRIDES ── */
+        html.light body { background-color: #f1f5f9; color: #0f172a; }
+        html.light header { background-color: rgba(255,255,255,0.95) !important; border-color: rgba(249,115,22,0.15) !important; }
+        html.light .bg-slate-950 { background-color: #f8fafc !important; }
+        html.light .bg-slate-900\/60, html.light .bg-slate-900\/90 { background-color: rgba(255,255,255,0.9) !important; }
+        html.light .bg-slate-900 { background-color: #ffffff !important; }
+        html.light .bg-slate-800\/50 { background-color: rgba(226,232,240,0.5) !important; }
+        html.light .bg-slate-800 { background-color: #e2e8f0 !important; }
+        html.light .border-slate-800 { border-color: #cbd5e1 !important; }
+        html.light .border-slate-900 { border-color: #e2e8f0 !important; }
+        html.light .text-slate-100 { color: #0f172a !important; }
+        html.light .text-slate-200 { color: #1e293b !important; }
+        html.light .text-slate-300 { color: #334155 !important; }
+        html.light .text-slate-400 { color: #475569 !important; }
+        html.light .text-slate-500 { color: #64748b !important; }
+        html.light section.bg-slate-900\/60 { background-color: rgba(255,255,255,0.85) !important; border-color: #e2e8f0 !important; }
+        html.light #visual-json { background-color: #1e293b !important; }
+        html.light .comfy-grid { background-color: #dde3ee; background-image: radial-gradient(circle, rgba(0,0,0,0.08) 1px, transparent 1px); }
+        html.light footer { background-color: #f8fafc !important; border-color: #e2e8f0 !important; }
+        html.light select, html.light textarea, html.light input[type="text"], html.light input[type="range"] {
+            background-color: #f8fafc !important;
+            border-color: #cbd5e1 !important;
+            color: #0f172a !important;
+        }
+        html.light .bg-flama-950\/40 { background-color: rgba(255,245,236,0.8) !important; }
+        html.light #toast { background-color: #ffffff !important; color: #0f172a !important; }
+        html.light .shadow-2xl { box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important; }
+        html.light [class*="bg-slate-9"][class*="border-slate-8"] { background-color: #f8fafc !important; }
+    </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col select-none" id="app-body">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans scrollbar-custom select-none">
 
-<!-- TOAST -->
-<div id="toast" class="fixed bottom-5 right-5 z-50 bg-slate-900 border border-slate-700 border-l-4 border-l-flama-500 text-slate-100 px-5 py-4 rounded-2xl shadow-2xl flex items-center gap-3 translate-y-24 opacity-0 transition-all duration-300 ease-out max-w-xs pointer-events-none">
-  <div class="p-1.5 bg-flama-500/15 rounded-lg text-flama-400" id="toast-icon"><i data-lucide="check-circle" class="w-5 h-5"></i></div>
-  <div><h4 class="font-bold text-sm" id="toast-title">Mensaje</h4><p class="text-xs text-slate-400 mt-0.5" id="toast-msg"></p></div>
-</div>
-
-<!-- HEADER -->
-<header class="bg-slate-900/95 backdrop-blur border-b border-slate-800 px-6 py-3.5 flex flex-wrap items-center justify-between gap-3 sticky top-0 z-40">
-  <div class="flex items-center gap-3">
-    <div class="bg-gradient-to-br from-flama-500 to-amber-500 p-2 rounded-xl shadow-lg shadow-flama-600/30">
-      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/>
-        <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 16.121A3 3 0 1012.015 11L11 14l2.879-1.121a3 3 0 11-4 3.242z"/>
-      </svg>
-    </div>
-    <div>
-      <h1 class="font-black text-lg tracking-tight leading-none">FLAMA<span class="text-flama-400">.MEDIA</span></h1>
-      <p class="text-[10px] text-slate-500 font-mono mt-0.5">Workflow Architect v3.2 · Jun 2026</p>
-    </div>
-  </div>
-
-  <div class="flex items-center gap-3">
-    <!-- Cost badge -->
-    <div class="bg-flama-950/60 border border-flama-500/25 px-3 py-1.5 rounded-xl flex items-center gap-2">
-      <i data-lucide="dollar-sign" class="w-3.5 h-3.5 text-flama-400"></i>
-      <div class="text-xs leading-none">
-        <span class="text-slate-500 font-mono">Costo est. </span>
-        <span class="font-bold text-flama-400 font-mono" id="costo-total">$0.54</span>
-      </div>
-    </div>
-    <!-- Theme toggle -->
-    <div class="flex bg-slate-800 rounded-xl p-1 gap-1">
-      <button onclick="setTheme('dark')" id="btn-dark" class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 bg-slate-700 text-white transition-all">
-        <i data-lucide="moon" class="w-3 h-3"></i> Dark
-      </button>
-      <button onclick="setTheme('light')" id="btn-light" class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 text-slate-400 hover:text-white transition-all">
-        <i data-lucide="sun" class="w-3 h-3"></i> Light
-      </button>
-    </div>
-    <span class="bg-flama-500/15 text-flama-400 border border-flama-500/25 text-[10px] font-mono font-bold px-2.5 py-1 rounded-full">M1 Pro · MPS</span>
-  </div>
-</header>
-
-<!-- MAIN -->
-<main class="flex-1 flex min-h-0 overflow-hidden" style="height:calc(100vh - 60px)">
-
-  <!-- LEFT PANEL -->
-  <section class="w-[42%] min-w-[340px] bg-slate-900/70 border-r border-slate-800 flex flex-col overflow-hidden">
-
-    <!-- Mode + tabs -->
-    <div class="p-4 border-b border-slate-800 space-y-3">
-      <!-- Image / Video -->
-      <div class="grid grid-cols-2 gap-2">
-        <button id="mode-image-btn" onclick="setMode('image')" class="py-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 bg-slate-950 border-slate-700 text-slate-400 hover:text-white transition-all">
-          <i data-lucide="image" class="w-4 h-4"></i> Imagen
-        </button>
-        <button id="mode-video-btn" onclick="setMode('video')" class="py-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 bg-slate-950 border-flama-500 text-flama-400 transition-all">
-          <i data-lucide="video" class="w-4 h-4"></i> Video
-        </button>
-      </div>
-      <!-- Presets / Custom -->
-      <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
-        <button id="tab-presets-btn" onclick="switchTab('presets')" class="flex-1 py-1.5 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 bg-flama-500 text-white transition-all">
-          <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i> Presets
-        </button>
-        <button id="tab-custom-btn" onclick="switchTab('custom')" class="flex-1 py-1.5 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 text-slate-400 hover:text-white transition-all">
-          <i data-lucide="sliders" class="w-3.5 h-3.5"></i> Personalizado
-        </button>
-      </div>
-    </div>
-
-    <!-- Panel content -->
-    <div class="flex-1 overflow-y-auto p-4 space-y-4">
-
-      <!-- PRESETS TAB -->
-      <div id="panel-presets">
-        <p class="text-[11px] text-slate-500 mb-3 flex items-center gap-1.5"><i data-lucide="info" class="w-3.5 h-3.5"></i> Haz clic en un preset para cargarlo.</p>
-        <div id="presets-image" class="space-y-4">
-          <p class="text-[10px] font-mono font-bold text-slate-600 uppercase tracking-widest">Presets de imagen</p>
-          <div class="grid grid-cols-2 gap-2" id="preset-img-grid"></div>
+    <!-- HEADER DE LA APLICACIÓN -->
+    <header class="bg-slate-900/90 border-b border-flama-500/20 px-6 py-4 flex flex-wrap justify-between items-center gap-4 sticky top-0 z-50 backdrop-blur-md">
+        <div class="flex items-center gap-3">
+            <div class="bg-gradient-to-tr from-flama-600 to-amber-500 p-2.5 rounded-xl shadow-[0_0_15px_rgba(240,43,15,0.3)] animate-pulse">
+                <!-- SVG de Llama/Fuego -->
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.879 16.121A3 3 0 1012.015 11L11 14l2.879-1.121a3 3 0 11-4 3.242z" />
+                </svg>
+            </div>
+            <div>
+                <h1 class="font-extrabold text-xl tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-flama-400">
+                    FLAMA.MEDIA
+                </h1>
+                <p class="text-xs text-slate-400 font-mono">ComfyUI Workflow Architect v3.1 • Jun 2026</p>
+            </div>
         </div>
-        <div id="presets-video" class="hidden space-y-4">
-          <p class="text-[10px] font-mono font-bold text-slate-600 uppercase tracking-widest">Presets de video</p>
-          <div class="space-y-2" id="preset-vid-grid"></div>
+        
+        <!-- Indicadores Rápidos -->
+        <div class="flex items-center gap-4">
+            <div class="bg-slate-950 border border-slate-800 px-4 py-2 rounded-xl flex items-center gap-3">
+                <span class="flex h-2.5 w-2.5 relative">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                </span>
+                <span class="text-xs font-mono text-slate-300">Entorno local: <strong class="text-emerald-400">Online (:8188)</strong></span>
+            </div>
+            
+            <div class="bg-flama-950/40 border border-flama-500/30 px-4 py-2 rounded-xl flex items-center gap-2">
+                <i data-lucide="dollar-sign" class="w-4 h-4 text-flama-400"></i>
+                <div class="text-xs">
+                    <p class="text-slate-400 font-mono leading-none">Costo Estimado</p>
+                    <p class="text-sm font-bold text-flama-400 font-mono mt-0.5" id="costo-total">$0.54 USD</p>
+                </div>
+            </div>
+
+            <!-- THEME SWITCH -->
+            <div class="flex bg-slate-800 rounded-xl p-1 gap-1 border border-slate-700">
+                <button id="btn-dark" onclick="setTheme('dark')" class="px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 bg-slate-600 text-white transition-all duration-200">
+                    <i data-lucide="moon" class="w-3 h-3"></i> Dark
+                </button>
+                <button id="btn-light" onclick="setTheme('light')" class="px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 text-slate-400 hover:text-white transition-all duration-200">
+                    <i data-lucide="sun" class="w-3 h-3"></i> Light
+                </button>
+            </div>
         </div>
-      </div>
+    </header>
 
-      <!-- CUSTOM TAB -->
-      <div id="panel-custom" class="hidden space-y-4">
-
-        <!-- API Source (image only) -->
-        <div id="section-api-source">
-          <p class="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest mb-2">Fuente de API</p>
-          <div class="flex gap-1.5 flex-wrap" id="api-source-pills"></div>
+    <!-- NOTIFICACIONES CUSTOM MODAL -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 bg-slate-900 border-l-4 border-flama-500 text-slate-100 px-5 py-4 rounded-xl shadow-2xl flex items-center gap-3 translate-y-20 opacity-0 transition-all duration-300 ease-out max-w-sm pointer-events-none">
+        <div class="p-1 bg-flama-500/10 rounded-lg text-flama-400" id="toast-icon">
+            <i data-lucide="check-circle" class="w-5 h-5"></i>
         </div>
-
-        <!-- Model -->
         <div>
-          <p class="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest mb-2">Motor</p>
-          <div class="space-y-1.5" id="model-cards-container"></div>
+            <h4 class="font-bold text-sm" id="toast-title">Mensaje del Arquitecto</h4>
+            <p class="text-xs text-slate-400 mt-0.5" id="toast-msg">Workflow copiado exitosamente.</p>
         </div>
-
-        <!-- Image config -->
-        <div id="section-image-config" class="space-y-3">
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <p class="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest mb-1.5">Calidad</p>
-              <div class="flex gap-1.5">
-                <button class="tog-btn flex-1 py-2 text-xs font-semibold rounded-lg border border-slate-700 text-slate-400 hover:text-white transition-all active-tog" data-group="quality" data-val="2K" onclick="setVal('quality','2K',this)">2K</button>
-                <button class="tog-btn flex-1 py-2 text-xs font-semibold rounded-lg border border-slate-700 text-slate-400 hover:text-white transition-all" data-group="quality" data-val="4K" onclick="setVal('quality','4K',this)">4K</button>
-              </div>
-            </div>
-            <div>
-              <p class="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest mb-1.5">Aspect ratio</p>
-              <div class="flex gap-1.5">
-                <button class="tog-btn flex-1 py-2 text-xs font-semibold rounded-lg border border-flama-500 bg-flama-500/10 text-flama-400 transition-all" data-group="ratio" data-val="9:16" onclick="setVal('ratio','9:16',this)">9:16</button>
-                <button class="tog-btn flex-1 py-2 text-xs font-semibold rounded-lg border border-slate-700 text-slate-400 hover:text-white transition-all" data-group="ratio" data-val="16:9" onclick="setVal('ratio','16:9',this)">16:9</button>
-                <button class="tog-btn flex-1 py-2 text-xs font-semibold rounded-lg border border-slate-700 text-slate-400 hover:text-white transition-all" data-group="ratio" data-val="1:1" onclick="setVal('ratio','1:1',this)">1:1</button>
-              </div>
-            </div>
-          </div>
-          <div>
-            <div class="flex items-center justify-between mb-1.5">
-              <p class="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest">Referencias</p>
-              <span class="text-[10px] font-mono text-flama-400 bg-flama-950 px-2 py-0.5 rounded-full border border-flama-900" id="ref-count-badge">0 imgs</span>
-            </div>
-            <input type="range" min="0" max="6" value="0" id="config-refs" oninput="handleRefsChange()" class="w-full accent-flama-500 cursor-pointer">
-            <div id="ref-names-grid" class="hidden grid grid-cols-3 gap-1.5 mt-2"></div>
-          </div>
-        </div>
-
-        <!-- Video config -->
-        <div id="section-video-config" class="space-y-3">
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <p class="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest mb-1.5">Aspect ratio</p>
-              <div class="flex gap-1.5">
-                <button class="tog-btn flex-1 py-2 text-xs font-semibold rounded-lg border border-slate-700 text-slate-400 hover:text-white transition-all" data-group="ratio" data-val="9:16" onclick="setVal('ratio','9:16',this)">9:16</button>
-                <button class="tog-btn flex-1 py-2 text-xs font-semibold rounded-lg border border-flama-500 bg-flama-500/10 text-flama-400 transition-all active-tog" data-group="ratio" data-val="16:9" onclick="setVal('ratio','16:9',this)">16:9</button>
-              </div>
-            </div>
-            <div>
-              <p class="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest mb-1.5">Duración</p>
-              <div class="flex gap-1.5">
-                <button class="tog-btn flex-1 py-2 text-xs font-semibold rounded-lg border border-flama-500 bg-flama-500/10 text-flama-400 transition-all" data-group="duration" data-val="5" onclick="setVal('duration','5',this)">5s</button>
-                <button class="tog-btn flex-1 py-2 text-xs font-semibold rounded-lg border border-slate-700 text-slate-400 hover:text-white transition-all" data-group="duration" data-val="8" onclick="setVal('duration','8',this)">8s</button>
-                <button class="tog-btn flex-1 py-2 text-xs font-semibold rounded-lg border border-slate-700 text-slate-400 hover:text-white transition-all" data-group="duration" data-val="10" onclick="setVal('duration','10',this)">10s</button>
-              </div>
-            </div>
-          </div>
-          <div id="section-resolution" class="hidden">
-            <p class="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest mb-1.5">Resolución (Seedance)</p>
-            <div class="flex gap-1.5">
-              <button class="tog-btn flex-1 py-2 text-xs font-semibold rounded-lg border border-flama-500 bg-flama-500/10 text-flama-400 transition-all" data-group="resolution" data-val="720p" onclick="setVal('resolution','720p',this)">720p</button>
-              <button class="tog-btn flex-1 py-2 text-xs font-semibold rounded-lg border border-slate-700 text-slate-400 hover:text-white transition-all" data-group="resolution" data-val="1080p" onclick="setVal('resolution','1080p',this)">1080p</button>
-            </div>
-          </div>
-          <div>
-            <p class="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest mb-1.5">Imagen de entrada</p>
-            <input type="text" id="vid-img-input" placeholder="nombre_archivo.png (en ComfyUI/input/)" oninput="updateAll()" class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs font-mono px-3 py-2 rounded-lg focus:outline-none focus:border-flama-500 transition-all">
-          </div>
-          <div id="section-end-frame" class="hidden">
-            <p class="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest mb-1.5">Frame final (Kling Omni)</p>
-            <input type="text" id="vid-endimg-input" placeholder="frame_final.png" oninput="updateAll()" class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs font-mono px-3 py-2 rounded-lg focus:outline-none focus:border-flama-500 transition-all">
-          </div>
-        </div>
-
-        <!-- Prompt -->
-        <div>
-          <p class="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest mb-1.5">Prompt</p>
-          <textarea id="config-prompt" rows="4" oninput="updateAll()" placeholder="Describe la imagen o el movimiento de cámara..." class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-3 py-2.5 rounded-lg focus:outline-none focus:border-flama-500 transition-all resize-none font-mono"></textarea>
-        </div>
-
-        <!-- Output prefix -->
-        <div>
-          <p class="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest mb-1.5">Prefijo de salida</p>
-          <input type="text" id="config-prefix" value="FLAMA/output" oninput="updateAll()" class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs font-mono px-3 py-2 rounded-lg focus:outline-none focus:border-flama-500 transition-all">
-        </div>
-
-        <!-- Alerts -->
-        <div id="alert-sora" class="hidden bg-red-950/50 border border-red-500/30 text-red-300 text-xs px-3 py-2.5 rounded-lg">⚠ <strong>Sora 2 Pro</strong> reinventa el producto. Solo worldbuilding/naturaleza, nunca producto luxury.</div>
-        <div id="alert-seedance" class="hidden bg-amber-950/50 border border-amber-500/30 text-amber-300 text-xs px-3 py-2.5 rounded-lg">⚠ <strong>Seedance</strong> cuesta ~$1.21/clip, más caro que Veo/Kling. Solo pruebas rápidas.</div>
-        <div id="alert-runway" class="hidden bg-emerald-950/50 border border-emerald-500/30 text-emerald-300 text-xs px-3 py-2.5 rounded-lg">✓ <strong>Runway FLAMA</strong> guarda el video automáticamente. No necesita SaveVideoFromURL.</div>
-      </div>
-
     </div>
 
-    <!-- Download bar -->
-    <div class="p-4 border-t border-slate-800 space-y-2">
-      <button onclick="downloadWorkflow()" class="w-full bg-flama-500 hover:bg-flama-600 text-white font-bold text-sm py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-flama-600/30 hover:shadow-flama-600/50 hover:-translate-y-0.5 active:scale-[0.98]" id="btn-download">
-        <i data-lucide="download" class="w-4 h-4"></i> Generar y descargar JSON
-      </button>
-      <button onclick="copyToClipboard()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs py-2 rounded-xl flex items-center justify-center gap-2 transition-all">
-        <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copiar JSON al portapapeles
-      </button>
-    </div>
+    <!-- CUERPO PRINCIPAL (Split Layout) -->
+    <main class="flex-1 flex flex-col lg:flex-row min-h-0">
+        
+        <!-- PANEL DE CONTROL (Izquierda - 40%) -->
+        <section class="w-full lg:w-[42%] bg-slate-900/60 border-r border-slate-800/80 p-5 flex flex-col gap-5 overflow-y-auto scrollbar-custom max-h-[calc(100vh-80px)]">
+            
+            <!-- TABS DEL PANEL -->
+            <div class="flex bg-slate-950 p-1.5 rounded-xl border border-slate-800">
+                <button id="tab-presets-btn" onclick="switchPanelTab('presets')" class="flex-1 py-2 text-xs font-semibold rounded-lg flex items-center justify-center gap-2 transition-all bg-flama-500 text-white shadow-lg shadow-flama-600/10">
+                    <i data-lucide="layout-grid" class="w-4 h-4"></i> Presets de Producción
+                </button>
+                <button id="tab-custom-btn" onclick="switchPanelTab('custom')" class="flex-1 py-2 text-xs font-semibold rounded-lg flex items-center justify-center gap-2 transition-all text-slate-400 hover:text-white">
+                    <i data-lucide="sliders" class="w-4 h-4"></i> Diseñador de Workflows
+                </button>
+            </div>
 
-  </section>
+            <!-- CONTENIDO DE TABS -->
+            
+            <!-- TAB 1: PRESETS -->
+            <div id="panel-presets" class="flex flex-col gap-4">
+                <div class="text-xs text-slate-400 flex items-center gap-2">
+                    <i data-lucide="info" class="w-4 h-4 text-slate-500"></i>
+                    <span>Haz clic en un preset verificado para cargarlo inmediatamente al canvas.</span>
+                </div>
 
-  <!-- RIGHT PANEL -->
-  <section class="flex-1 flex flex-col overflow-hidden">
-    <!-- Tab bar -->
-    <div class="bg-slate-900 border-b border-slate-800 px-4 py-2 flex items-center justify-between">
-      <div class="flex gap-1">
-        <button id="tab-canvas-btn" onclick="switchVisual('canvas')" class="px-4 py-1.5 text-xs font-bold rounded-lg bg-slate-700 text-white transition-all">
-          <i data-lucide="git-fork" class="w-3 h-3 inline mr-1"></i> Canvas
-        </button>
-        <button id="tab-json-btn" onclick="switchVisual('json')" class="px-4 py-1.5 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition-all">
-          <i data-lucide="braces" class="w-3 h-3 inline mr-1"></i> JSON
-        </button>
-      </div>
-      <div class="flex items-center gap-1.5 text-[10px] text-emerald-400 font-mono">
-        <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span></span>
-        Live preview
-      </div>
-    </div>
+                <!-- CATEGORÍA: IMÁGENES -->
+                <div class="space-y-2">
+                    <h3 class="text-xs font-bold font-mono text-slate-500 tracking-wider uppercase">Presets de Imagen (Ref. Múltiples)</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <!-- PRESET 1 -->
+                        <div onclick="loadPreset('img-gpt-916-2k')" class="group relative cursor-pointer bg-slate-950 hover:bg-slate-800/50 border border-slate-800 hover:border-flama-500/50 p-4 rounded-xl transition-all duration-200">
+                            <span class="absolute top-2 right-2 text-[10px] font-mono bg-amber-500/10 text-amber-400 px-1.5 py-0.5 rounded border border-amber-500/20">GPT-4o</span>
+                            <h4 class="font-bold text-sm group-hover:text-flama-400 transition-colors">GPT Image 2 (9:16)</h4>
+                            <p class="text-xs text-slate-400 mt-1">Hasta 6 imágenes ref. Optimizado para producto luxury 2K vertical.</p>
+                            <div class="flex items-center gap-2 mt-3 text-[10px] font-mono text-slate-500">
+                                <span class="bg-slate-900 px-2 py-0.5 rounded">2K</span>
+                                <span class="bg-slate-900 px-2 py-0.5 rounded">Vertical 9:16</span>
+                            </div>
+                        </div>
 
-    <!-- Canvas view -->
-    <div id="visual-canvas" class="flex-1 comfy-grid overflow-auto relative">
-      <div class="relative w-[1100px] h-[520px] mx-auto mt-8" id="canvas-workspace">
-        <svg class="absolute inset-0 w-full h-full pointer-events-none" id="connections-svg"></svg>
-        <div id="nodes-container" class="absolute inset-0 pointer-events-none"></div>
-      </div>
-    </div>
+                        <!-- PRESET 2 -->
+                        <div onclick="loadPreset('img-gpt-169-4k')" class="group relative cursor-pointer bg-slate-950 hover:bg-slate-800/50 border border-slate-800 hover:border-flama-500/50 p-4 rounded-xl transition-all duration-200">
+                            <span class="absolute top-2 right-2 text-[10px] font-mono bg-amber-500/10 text-amber-400 px-1.5 py-0.5 rounded border border-amber-500/20">GPT-4o</span>
+                            <h4 class="font-bold text-sm group-hover:text-flama-400 transition-colors">GPT Image 2 (16:9)</h4>
+                            <p class="text-xs text-slate-400 mt-1">Hasta 6 imágenes ref. Máximo detalle publicitario 4K horizontal.</p>
+                            <div class="flex items-center gap-2 mt-3 text-[10px] font-mono text-slate-500">
+                                <span class="bg-slate-900 px-2 py-0.5 rounded">4K</span>
+                                <span class="bg-slate-900 px-2 py-0.5 rounded">Horizontal 16:9</span>
+                            </div>
+                        </div>
 
-    <!-- JSON view -->
-    <div id="visual-json" class="hidden flex-1 overflow-auto bg-slate-950 p-6">
-      <pre class="text-xs font-mono leading-relaxed" id="json-code-block"></pre>
-    </div>
-  </section>
+                        <!-- PRESET 3 -->
+                        <div onclick="loadPreset('img-nano-916-2k')" class="group relative cursor-pointer bg-slate-950 hover:bg-slate-800/50 border border-slate-800 hover:border-flama-500/50 p-4 rounded-xl transition-all duration-200">
+                            <span class="absolute top-2 right-2 text-[10px] font-mono bg-flama-500/10 text-flama-400 px-1.5 py-0.5 rounded border border-flama-500/20">Google</span>
+                            <h4 class="font-bold text-sm group-hover:text-flama-400 transition-colors">NanoBanana PRO (9:16)</h4>
+                            <p class="text-xs text-slate-400 mt-1">Multi-referencia. Gemini 3.1 Flash. Alta velocidad a bajo costo.</p>
+                            <div class="flex items-center gap-2 mt-3 text-[10px] font-mono text-slate-500">
+                                <span class="bg-slate-900 px-2 py-0.5 rounded">2K</span>
+                                <span class="bg-slate-900 px-2 py-0.5 rounded">Vertical 9:16</span>
+                            </div>
+                        </div>
 
-</main>
+                        <!-- PRESET 4 -->
+                        <div onclick="loadPreset('img-nano-169-4k')" class="group relative cursor-pointer bg-slate-950 hover:bg-slate-800/50 border border-slate-800 hover:border-flama-500/50 p-4 rounded-xl transition-all duration-200">
+                            <span class="absolute top-2 right-2 text-[10px] font-mono bg-flama-500/10 text-flama-400 px-1.5 py-0.5 rounded border border-flama-500/20">Google</span>
+                            <h4 class="font-bold text-sm group-hover:text-flama-400 transition-colors">NanoBanana PRO (16:9)</h4>
+                            <p class="text-xs text-slate-400 mt-1">Multi-referencia. Ideal para worldbuilding y backgrounds 4K.</p>
+                            <div class="flex items-center gap-2 mt-3 text-[10px] font-mono text-slate-500">
+                                <span class="bg-slate-900 px-2 py-0.5 rounded">4K</span>
+                                <span class="bg-slate-900 px-2 py-0.5 rounded">Horizontal 16:9</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-<footer class="bg-slate-950 border-t border-slate-900 py-2.5 px-6 flex justify-between text-[10px] font-mono text-slate-600">
-  <span>© 2026 FLAMA.MEDIA — "Criterio sobre herramienta."</span>
-  <span>Apple Silicon M1 Pro · ComfyUI 0.21.1 · fal.ai + Runway + Google API</span>
-</footer>
+                <!-- CATEGORÍA: VIDEOS -->
+                <div class="space-y-2 mt-2">
+                    <h3 class="text-xs font-bold font-mono text-slate-500 tracking-wider uppercase">Presets de Video (Spots Publicitarios)</h3>
+                    
+                    <div class="flex flex-col gap-3">
+                        <!-- PRESET VIDEO 1 -->
+                        <div onclick="loadPreset('vid-kling-luxury')" class="group cursor-pointer bg-slate-950 hover:bg-slate-800/50 border border-slate-800 hover:border-flama-500/50 p-4 rounded-xl flex justify-between items-center transition-all duration-200">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h4 class="font-bold text-sm group-hover:text-flama-400 transition-colors">Spot Cinematográfico Kling V3 Pro</h4>
+                                    <span class="bg-emerald-500/10 text-emerald-400 text-[10px] font-mono px-1.5 py-0.5 rounded border border-emerald-500/20">Recomendado</span>
+                                </div>
+                                <p class="text-xs text-slate-400 mt-1">NanoBanana 2K → KlingV3Pro_fal → SaveVideoFromURL. Ideal para producto luxury.</p>
+                                <div class="flex items-center gap-2 mt-3 text-[10px] font-mono text-slate-500">
+                                    <span class="bg-slate-900 px-2 py-0.5 rounded">HD 1080p</span>
+                                    <span class="bg-slate-900 px-2 py-0.5 rounded">8 segundos</span>
+                                    <span class="bg-slate-900 px-2 py-0.5 rounded">Costo: ~$0.54</span>
+                                </div>
+                            </div>
+                            <i data-lucide="chevron-right" class="w-5 h-5 text-slate-500 group-hover:text-flama-400 transition-colors ml-4"></i>
+                        </div>
 
-<script>
-// ── STATE ──────────────────────────────────────────────────────
-const S = {
-  mode: 'video', tab: 'presets', visual: 'canvas', theme: 'dark',
-  imgSource: 'google',
-  classType: 'KlingV3Pro_fal', runwayModel: 'gen4.5',
-  quality: '2K', ratio: '16:9', resolution: '720p',
-  duration: '5', refs: 0, refNames: [],
-  prompt: 'Slow cinematic pull-back from extreme close-up of the bottle, light rays catching the glass, product in perfect focus, luxury brand film feel.',
-  prefix: 'FLAMA/output',
-  vidImg: '', vidEndImg: ''
-};
+                        <!-- PRESET VIDEO 2 -->
+                        <div onclick="loadPreset('vid-veo-premium')" class="group cursor-pointer bg-slate-950 hover:bg-slate-800/50 border border-slate-800 hover:border-flama-500/50 p-4 rounded-xl flex justify-between items-center transition-all duration-200">
+                            <div>
+                                <h4 class="font-bold text-sm group-hover:text-flama-400 transition-colors">Spot Premium Google Veo 3.1</h4>
+                                <p class="text-xs text-slate-400 mt-1">Calidad cinematográfica superior de Google con first_frame. 1080p nativo.</p>
+                                <div class="flex items-center gap-2 mt-3 text-[10px] font-mono text-slate-500">
+                                    <span class="bg-slate-900 px-2 py-0.5 rounded">Veo 3.1</span>
+                                    <span class="bg-slate-900 px-2 py-0.5 rounded">8 segundos</span>
+                                    <span class="bg-slate-900 px-2 py-0.5 rounded">Costo: ~$0.84</span>
+                                </div>
+                            </div>
+                            <i data-lucide="chevron-right" class="w-5 h-5 text-slate-500 group-hover:text-flama-400 transition-colors ml-4"></i>
+                        </div>
 
-// ── MODEL DATA ─────────────────────────────────────────────────
-const IMG_SOURCES = {
-  google: [
-    { id:'NanoBanana2AIO', name:'Nano Banana 2 AIO', note:'Gemini 3.1 Flash · Motor principal', cost:'$0.04', star:true }
-  ],
-  fal: [
-    { id:'NanaBanana2AIO', name:'Nano Banana Pro', note:'vía fal.ai', cost:'variable' },
-    { id:'GPTImage15_fal', name:'GPT Image 1.5', note:'OpenAI vía fal', cost:'$0.054' },
-    { id:'GPTImage2_fal', name:'GPT Image 2', note:'OpenAI v2 vía fal', cost:'$0.054' },
-    { id:'FluxPro_fal', name:'Flux Pro', note:'Fotorrealismo general', cost:'$0.032' },
-    { id:'FluxUltra_fal', name:'Flux Ultra', note:'Máxima calidad Flux', cost:'$0.06' },
-    { id:'Imagen4Preview_fal', name:'Google Imagen 4', note:'Google vía fal', cost:'$0.04' },
-    { id:'Ideogramv3_fal', name:'Ideogram v3', note:'Texto en imagen', cost:'$0.03' }
-  ],
-  openai: [
-    { id:'GPTImage2_fal', name:'GPT Image 2 (nativo)', note:'OpenAI directo · Más preciso', cost:'$0.054', star:true },
-    { id:'GPTImage15_fal', name:'GPT Image 1.5 (nativo)', note:'OpenAI directo', cost:'$0.054' }
-  ]
-};
+                        <!-- PRESET VIDEO 3 -->
+                        <div onclick="loadPreset('vid-omni-sequence')" class="group cursor-pointer bg-slate-950 hover:bg-slate-800/50 border border-slate-800 hover:border-flama-500/50 p-4 rounded-xl flex justify-between items-center transition-all duration-200">
+                            <div>
+                                <h4 class="font-bold text-sm group-hover:text-flama-400 transition-colors">Secuencia Start/End (Kling Omni)</h4>
+                                <p class="text-xs text-slate-400 mt-1">Control absoluto conectando un frame de inicio y un frame de fin para guiar la secuencia.</p>
+                                <div class="flex items-center gap-2 mt-3 text-[10px] font-mono text-slate-500">
+                                    <span class="bg-slate-900 px-2 py-0.5 rounded">Start + End</span>
+                                    <span class="bg-slate-900 px-2 py-0.5 rounded">Kling Omni</span>
+                                    <span class="bg-slate-900 px-2 py-0.5 rounded">Costo: ~$0.54</span>
+                                </div>
+                            </div>
+                            <i data-lucide="chevron-right" class="w-5 h-5 text-slate-500 group-hover:text-flama-400 transition-colors ml-4"></i>
+                        </div>
 
-const VID_SOURCES = {
-  fal: [
-    { id:'KlingV3Pro_fal', name:'Kling V3 Pro', note:'Motor principal · Fiel al producto', cost:'$0.50', star:true },
-    { id:'Veo31_fal', name:'Veo 3.1', note:'Cinematográfico premium · 1080p', cost:'$0.80', star:true },
-    { id:'Veo31Fast_fal', name:'Veo 3.1 Fast', note:'Balance calidad / velocidad', cost:'$0.50' },
-    { id:'KlingV3Standard_fal', name:'Kling V3 Standard', note:'Versión económica V3', cost:'$0.30' },
-    { id:'KlingOmniImageToVideo_fal', name:'Kling Omni I2V', note:'Start + End frame', cost:'$0.40' },
-    { id:'SeedanceImageToVideo_fal', name:'Seedance', note:'Solo pruebas rápidas', cost:'$1.21', warn:true },
-    { id:'Sora2Pro_fal', name:'Sora 2 Pro', note:'NO producto luxury', cost:'$2.00', danger:true }
-  ],
-  runway: [
-    { id:'RunwayImageToVideoFLAMA', name:'Gen4.5', note:'Portfolio · spots de cliente', cost:'~50 créd.', star:true, model:'gen4.5' },
-    { id:'RunwayImageToVideoFLAMA', name:'Gen4 Turbo', note:'Pruebas rápidas · 1080p', cost:'~30 créd.', model:'gen4_turbo' },
-    { id:'RunwayImageToVideoFLAMA', name:'Veo3.1', note:'Máxima calidad · brand films', cost:'~70 créd.', star:true, model:'veo3.1' },
-    { id:'RunwayImageToVideoFLAMA', name:'Veo3.1 Fast', note:'Balance calidad / velocidad', cost:'~50 créd.', model:'veo3.1_fast' },
-    { id:'RunwayImageToVideoFLAMA', name:'Seedance2', note:'Alternativa a fal.ai Seedance', cost:'~40 créd.', model:'seedance2' }
-  ]
-};
+                        <!-- PRESET VIDEO 4 -->
+                        <div onclick="loadPreset('vid-runway-flama')" class="group cursor-pointer bg-slate-950 hover:bg-slate-800/50 border border-slate-800 hover:border-flama-500/50 p-4 rounded-xl flex justify-between items-center transition-all duration-200">
+                            <div>
+                                <h4 class="font-bold text-sm group-hover:text-flama-400 transition-colors">Spot Runway Gen4.5 (FLAMA Custom)</h4>
+                                <p class="text-xs text-slate-400 mt-1">Pasa imagen de NanoBanana a nuestro nodo local de Runway. Guarda automático en /output.</p>
+                                <div class="flex items-center gap-2 mt-3 text-[10px] font-mono text-slate-500">
+                                    <span class="bg-slate-900 px-2 py-0.5 rounded">Gen4.5</span>
+                                    <span class="bg-slate-900 px-2 py-0.5 rounded">1280x720</span>
+                                    <span class="bg-slate-900 px-2 py-0.5 rounded">5 segundos</span>
+                                </div>
+                            </div>
+                            <i data-lucide="chevron-right" class="w-5 h-5 text-slate-500 group-hover:text-flama-400 transition-colors ml-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-const PRESETS_IMG = [
-  { id:'pi1', label:'NanoBanana 9:16 · 2K', sub:'Motor principal Google', model:'NanoBanana2AIO', ratio:'9:16', quality:'2K', source:'google' },
-  { id:'pi2', label:'NanoBanana 16:9 · 4K', sub:'Horizontal premium', model:'NanoBanana2AIO', ratio:'16:9', quality:'4K', source:'google' },
-  { id:'pi3', label:'GPT Image 2 · 9:16', sub:'Instrucciones complejas', model:'GPTImage2_fal', ratio:'9:16', quality:'2K', source:'fal' },
-  { id:'pi4', label:'Flux Pro 16:9 · 4K', sub:'Fotorrealismo premium', model:'FluxPro_fal', ratio:'16:9', quality:'4K', source:'fal' }
-];
-const PRESETS_VID = [
-  { id:'pv1', label:'Spot Kling V3 Pro', sub:'NanaBanana → Kling · ~$0.54 · Recomendado', model:'KlingV3Pro_fal', ratio:'16:9', dur:'8', source:'fal', rec:true },
-  { id:'pv2', label:'Spot Veo 3.1 Premium', sub:'NanaBanana → Veo3.1 · ~$0.84', model:'Veo31_fal', ratio:'16:9', dur:'8', source:'fal' },
-  { id:'pv3', label:'Runway Gen4.5', sub:'NanaBanana → Runway · ~50 créditos', model:'RunwayImageToVideoFLAMA', ratio:'16:9', dur:'5', source:'runway', runwayModel:'gen4.5' },
-  { id:'pv4', label:'Kling Omni Start/End', sub:'Control de frames inicio y fin · $0.40', model:'KlingOmniImageToVideo_fal', ratio:'9:16', dur:'5', source:'fal' }
-];
+            <!-- TAB 2: PERSONALIZADO -->
+            <div id="panel-custom" class="hidden flex flex-col gap-5">
+                
+                <!-- TIPO DE ENTRADA / SALIDA -->
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-slate-300 block font-mono">1. Tipo de Producción</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="mode-image-btn" onclick="setMode('image')" class="py-2.5 rounded-xl border font-bold text-xs flex items-center justify-center gap-2 bg-slate-950 border-flama-500 text-flama-400 transition-all">
+                            <i data-lucide="image" class="w-4 h-4"></i> Imagen Premium
+                        </button>
+                        <button id="mode-video-btn" onclick="setMode('video')" class="py-2.5 rounded-xl border font-bold text-xs flex items-center justify-center gap-2 bg-slate-950 border-slate-800 text-slate-400 hover:text-white transition-all">
+                            <i data-lucide="film" class="w-4 h-4"></i> Video Spot
+                        </button>
+                    </div>
+                </div>
 
-// ── INIT ───────────────────────────────────────────────────────
-window.onload = () => {
-  lucide.createIcons();
-  renderPresets();
-  setMode('video');
-  switchTab('presets');
-  showToast('Arquitecto Activado', 'Bienvenido a FLAMA.MEDIA Workflow Engine.', 'sparkles');
-};
+                <!-- CONFIGURACIÓN DE FORMATO Y CALIDAD -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-300 block font-mono">Dimensiones</label>
+                        <select id="config-ratio" onchange="updateConfig()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-flama-500">
+                            <option value="9:16">Vertical (9:16)</option>
+                            <option value="16:9">Horizontal (16:9)</option>
+                            <option value="1:1">Cuadrado (1:1)</option>
+                        </select>
+                    </div>
 
-// ── THEME ──────────────────────────────────────────────────────
-function setTheme(t) {
-  S.theme = t;
-  document.documentElement.classList.toggle('dark', t==='dark');
-  document.documentElement.classList.toggle('light', t==='light');
-  document.getElementById('app-body').className = t==='dark'
-    ? 'bg-slate-950 text-slate-100 min-h-screen flex flex-col select-none'
-    : 'bg-slate-100 text-slate-900 min-h-screen flex flex-col select-none';
-  document.getElementById('btn-dark').className = t==='dark'
-    ? 'px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 bg-slate-700 text-white transition-all'
-    : 'px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 text-slate-400 hover:text-white transition-all';
-  document.getElementById('btn-light').className = t==='light'
-    ? 'px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 bg-white text-slate-900 shadow transition-all'
-    : 'px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 text-slate-400 hover:text-white transition-all';
-  lucide.createIcons();
-}
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-300 block font-mono">Calidad / Resolución</label>
+                        <select id="config-res" onchange="updateConfig()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-flama-500">
+                            <option value="2K">Súper HD (2K)</option>
+                            <option value="4K">Ultra HD (4K)</option>
+                            <option value="1080p">Standard HD (1080p)</option>
+                            <option value="720p">Prueba Rápida (720p)</option>
+                        </select>
+                    </div>
+                </div>
 
-// ── MODE ───────────────────────────────────────────────────────
-function setMode(m) {
-  S.mode = m;
-  const imgBtn = document.getElementById('mode-image-btn');
-  const vidBtn = document.getElementById('mode-video-btn');
-  const imgCfg = document.getElementById('section-image-config');
-  const vidCfg = document.getElementById('section-video-config');
-  const apiSrc = document.getElementById('section-api-source');
+                <!-- ELECCIÓN DEL MOTOR (CAMBIA DINÁMICAMENTE) -->
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-slate-300 block font-mono">2. Motor de Inteligencia Artificial</label>
+                    <select id="config-model" onchange="handleModelChange()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-flama-500">
+                        <!-- Cargados dinámicamente por JS -->
+                    </select>
+                </div>
 
-  const activeC = 'py-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 bg-slate-950 border-flama-500 text-flama-400 transition-all';
-  const inactiveC = 'py-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 bg-slate-950 border-slate-700 text-slate-400 hover:text-white transition-all';
-  imgBtn.className = m==='image' ? activeC : inactiveC;
-  vidBtn.className = m==='video' ? activeC : inactiveC;
-  imgCfg.classList.toggle('hidden', m!=='image');
-  vidCfg.classList.toggle('hidden', m!=='video');
-  apiSrc.classList.toggle('hidden', m!=='image');
+                <!-- DETALLES DE REFERENCIAS MÚLTIPLES (SOLO VISIBLE PARA IMAGEN) -->
+                <div id="section-image-refs" class="space-y-2 bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+                    <div class="flex justify-between items-center">
+                        <label class="text-xs font-bold text-slate-300 font-mono">Imágenes de Referencia (GPT/Nano)</label>
+                        <span id="ref-count-badge" class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded font-mono">1 imagen</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500">Envía hasta 6 imágenes para alimentar las variaciones en producción.</p>
+                    <div class="flex items-center gap-2 mt-2">
+                        <input type="range" id="config-refs" min="1" max="6" value="1" oninput="handleRefsChange()" class="flex-1 accent-flama-500">
+                    </div>
+                </div>
 
-  document.getElementById('presets-image').classList.toggle('hidden', m!=='image');
-  document.getElementById('presets-video').classList.toggle('hidden', m!=='video');
+                <!-- VARIANTES DE SALIDA — IMAGEN -->
+                <div id="section-img-variants" class="space-y-2 bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+                    <div class="flex justify-between items-center">
+                        <label class="text-xs font-bold text-slate-300 font-mono">Variantes de salida</label>
+                        <span id="img-variant-badge" class="text-[10px] bg-flama-950 text-flama-400 border border-flama-900 px-2 py-0.5 rounded font-mono">1 imagen</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500">El nodo generará N imágenes distintas en una sola ejecución.</p>
+                    <div class="flex gap-2 mt-2">
+                        <button onclick="setImgVariants(1)" id="iv-1" class="flex-1 py-2 text-xs font-bold rounded-lg border border-flama-500 bg-flama-500/10 text-flama-400 transition-all">1</button>
+                        <button onclick="setImgVariants(2)" id="iv-2" class="flex-1 py-2 text-xs font-bold rounded-lg border border-slate-700 text-slate-400 hover:text-white transition-all">2</button>
+                        <button onclick="setImgVariants(3)" id="iv-3" class="flex-1 py-2 text-xs font-bold rounded-lg border border-slate-700 text-slate-400 hover:text-white transition-all">3</button>
+                        <button onclick="setImgVariants(4)" id="iv-4" class="flex-1 py-2 text-xs font-bold rounded-lg border border-slate-700 text-slate-400 hover:text-white transition-all">4</button>
+                    </div>
+                    <div id="img-cost-note" class="text-[10px] text-slate-500 font-mono mt-1"></div>
+                </div>
 
-  if (m==='image') {
-    S.classType = 'NanoBanana2AIO'; S.imgSource = 'google';
-    renderApiPills(); renderModelCards();
-  } else {
-    S.classType = 'KlingV3Pro_fal';
-    renderApiPills(); renderModelCards();
-  }
-  updateAll();
-}
+                <!-- CONFIGURACIÓN DE INPUTS ADICIONALES PARA VIDEO (SOLO VISIBLE PARA VIDEO) -->
+                <div id="section-video-config" class="hidden space-y-3 bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+                    <label class="text-xs font-bold text-slate-300 block font-mono">Configuración de Animación</label>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-[11px] text-slate-400">Duración</label>
+                            <select id="config-duration" onchange="updateConfig()" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-2 text-xs focus:outline-none focus:border-flama-500">
+                                <option value="5">5 Segundos</option>
+                                <option value="8" selected>8 Segundos</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[11px] text-slate-400">Control de Frame</label>
+                            <select id="config-frame-control" onchange="handleFrameControlChange()" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-2 text-xs focus:outline-none focus:border-flama-500">
+                                <option value="first">Frame Inicial (1 Img)</option>
+                                <option value="start-end">Start + End (2 Img)</option>
+                                <option value="text-only">Solo Texto (Sin Img)</option>
+                            </select>
+                        </div>
+                    </div>
 
-// ── TABS ───────────────────────────────────────────────────────
-function switchTab(t) {
-  S.tab = t;
-  const on = 'flex-1 py-1.5 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 bg-flama-500 text-white transition-all';
-  const off = 'flex-1 py-1.5 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 text-slate-400 hover:text-white transition-all';
-  document.getElementById('tab-presets-btn').className = t==='presets'?on:off;
-  document.getElementById('tab-custom-btn').className = t==='custom'?on:off;
-  document.getElementById('panel-presets').classList.toggle('hidden', t!=='presets');
-  document.getElementById('panel-custom').classList.toggle('hidden', t!=='custom');
-  if (t==='custom') { renderApiPills(); renderModelCards(); }
-}
+                    <!-- VARIANTES DE SALIDA — VIDEO -->
+                    <div class="pt-2 border-t border-slate-800">
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="text-[11px] font-bold text-slate-300 font-mono">Variantes de video</label>
+                            <span id="vid-variant-badge" class="text-[10px] bg-flama-950 text-flama-400 border border-flama-900 px-2 py-0.5 rounded font-mono">1 clip</span>
+                        </div>
+                        <p class="text-[10px] text-slate-500 mb-2">Genera N nodos en paralelo en el mismo workflow. Costo se multiplica.</p>
+                        <div class="flex gap-2">
+                            <button onclick="setVidVariants(1)" id="vv-1" class="flex-1 py-2 text-xs font-bold rounded-lg border border-flama-500 bg-flama-500/10 text-flama-400 transition-all">1</button>
+                            <button onclick="setVidVariants(2)" id="vv-2" class="flex-1 py-2 text-xs font-bold rounded-lg border border-slate-700 text-slate-400 hover:text-white transition-all">2</button>
+                            <button onclick="setVidVariants(3)" id="vv-3" class="flex-1 py-2 text-xs font-bold rounded-lg border border-slate-700 text-slate-400 hover:text-white transition-all">3</button>
+                            <button onclick="setVidVariants(4)" id="vv-4" class="flex-1 py-2 text-xs font-bold rounded-lg border border-slate-700 text-slate-400 hover:text-white transition-all">4</button>
+                        </div>
+                        <div id="vid-cost-note" class="text-[10px] font-mono mt-2"></div>
+                    </div>
+                </div>
 
-function switchVisual(v) {
-  S.visual = v;
-  const on = 'px-4 py-1.5 text-xs font-bold rounded-lg bg-slate-700 text-white transition-all';
-  const off = 'px-4 py-1.5 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition-all';
-  document.getElementById('tab-canvas-btn').className = v==='canvas'?on:off;
-  document.getElementById('tab-json-btn').className = v==='json'?on:off;
-  document.getElementById('visual-canvas').classList.toggle('hidden', v!=='canvas');
-  document.getElementById('visual-json').classList.toggle('hidden', v!=='json');
-  if (v==='canvas') setTimeout(drawConnections, 50);
-}
+                <!-- PROMPTS -->
+                <div class="space-y-3">
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center">
+                            <label class="text-xs font-bold text-slate-300 font-mono">Prompt Positivo</label>
+                            <span class="text-[10px] text-slate-500">Recomendado detallar iluminación</span>
+                        </div>
+                        <textarea id="config-prompt" oninput="updateConfig()" rows="3" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-flama-500 resize-none font-sans scrollbar-custom" placeholder="Describa la escena de forma cinemática..."></textarea>
+                    </div>
 
-// ── PRESETS ────────────────────────────────────────────────────
-function renderPresets() {
-  const ig = document.getElementById('preset-img-grid');
-  ig.innerHTML = PRESETS_IMG.map(p => `
-    <div onclick="loadPreset('img','${p.id}')" class="group cursor-pointer bg-slate-950 hover:bg-slate-800/60 border border-slate-800 hover:border-flama-500/50 p-3.5 rounded-xl transition-all">
-      <h4 class="font-bold text-xs group-hover:text-flama-400 transition-colors">${p.label}</h4>
-      <p class="text-[10px] text-slate-500 mt-1">${p.sub}</p>
-    </div>`).join('');
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-300 font-mono block">Prompt Negativo</label>
+                        <input type="text" id="config-negative" oninput="updateConfig()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-flama-500 font-sans" value="low quality, blur, distort, deformed product, morphing">
+                    </div>
+                </div>
+            </div>
 
-  const vg = document.getElementById('preset-vid-grid');
-  vg.innerHTML = PRESETS_VID.map(p => `
-    <div onclick="loadPreset('vid','${p.id}')" class="group cursor-pointer bg-slate-950 hover:bg-slate-800/60 border border-slate-800 hover:border-flama-500/50 px-4 py-3 rounded-xl flex justify-between items-center transition-all">
-      <div>
-        <div class="flex items-center gap-2">
-          <span class="font-bold text-xs group-hover:text-flama-400 transition-colors">${p.label}</span>
-          ${p.rec ? '<span class="text-[9px] font-mono bg-emerald-950 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-900">★ Recomendado</span>' : ''}
-        </div>
-        <p class="text-[10px] text-slate-500 mt-0.5">${p.sub}</p>
-      </div>
-      <i data-lucide="chevron-right" class="w-4 h-4 text-slate-600 group-hover:text-flama-400 ml-3 flex-shrink-0 transition-colors"></i>
-    </div>`).join('');
-  lucide.createIcons();
-}
+            <!-- SECCIÓN: COSTOS Y NOTAS DE COMPATIBILIDAD -->
+            <div id="validation-warning" class="hidden bg-amber-500/10 border border-amber-500/30 p-4 rounded-xl flex items-start gap-3">
+                <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-500 shrink-0"></i>
+                <div class="text-xs">
+                    <h5 class="font-bold text-amber-400">Ajuste de compatibilidad obligatorio</h5>
+                    <p class="text-slate-300 mt-0.5" id="validation-msg">Runway Gen4.5 requiere un formato de 1280:720. El sistema corregirá las dimensiones automáticamente al exportar.</p>
+                </div>
+            </div>
 
-function loadPreset(type, id) {
-  if (type==='img') {
-    const p = PRESETS_IMG.find(x=>x.id===id); if(!p) return;
-    S.imgSource=p.source; S.classType=p.model; S.ratio=p.ratio; S.quality=p.quality;
-    setMode('image');
-  } else {
-    const p = PRESETS_VID.find(x=>x.id===id); if(!p) return;
-    S.classType=p.model; S.ratio=p.ratio; S.duration=p.dur;
-    if(p.runwayModel) S.runwayModel=p.runwayModel;
-    setMode('video');
-  }
-  switchTab('custom');
-  showToast('Preset cargado', 'Configuración aplicada.', 'check-circle');
-}
+            <!-- EXPORTACIONES RÁPIDAS -->
+            <div class="mt-auto pt-4 border-t border-slate-800 flex gap-2">
+                <button onclick="copyToClipboard()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition-all">
+                    <i data-lucide="copy" class="w-4 h-4"></i> Copiar JSON
+                </button>
+                <button onclick="downloadWorkflow()" class="flex-1 bg-gradient-to-r from-flama-600 to-flama-500 hover:from-flama-700 hover:to-flama-600 text-white font-bold py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-flama-600/20 transition-all">
+                    <i data-lucide="download" class="w-4 h-4"></i> Descargar JSON
+                </button>
+            </div>
+        </section>
 
-// ── API PILLS ──────────────────────────────────────────────────
-function renderApiPills() {
-  const c = document.getElementById('api-source-pills');
-  const sources = S.mode==='image' ? ['google','fal','openai'] : ['fal','runway'];
-  const labels = { google:'Google API', fal:'fal.ai', openai:'OpenAI', runway:'Runway FLAMA' };
-  c.innerHTML = sources.map(s => `
-    <button onclick="setSource('${s}')" class="api-pill px-3 py-1 rounded-full text-xs font-semibold border transition-all ${s===S.imgSource?'bg-flama-500 border-flama-500 text-white':'bg-slate-950 border-slate-700 text-slate-400 hover:text-white'}">
-      ${labels[s]}
-    </button>`).join('');
-}
+        <!-- PANEL DE VISUALIZACIÓN Y CÓDIGO (Derecha - 60%) -->
+        <section class="flex-1 bg-slate-950 flex flex-col min-h-0 relative">
+            
+            <!-- TABS SUPERIORES (VISTA CANVAS / VISTA JSON) -->
+            <div class="bg-slate-900/60 border-b border-slate-800 px-6 py-3 flex justify-between items-center z-10 shrink-0">
+                <div class="flex gap-2 bg-slate-950 p-1 rounded-lg border border-slate-800">
+                    <button id="tab-canvas-btn" onclick="switchVisualTab('canvas')" class="px-4 py-1.5 text-xs font-bold rounded-md transition-all bg-slate-800 text-white">
+                        Diagrama de Nodos
+                    </button>
+                    <button id="tab-json-btn" onclick="switchVisualTab('json')" class="px-4 py-1.5 text-xs font-bold rounded-md transition-all text-slate-400 hover:text-slate-200">
+                        Código ComfyUI (JSON)
+                    </button>
+                </div>
+                
+                <span class="text-[10px] font-mono text-slate-500 bg-slate-950 border border-slate-800 px-2 py-1 rounded">
+                    Estado: <span class="text-flama-400 font-bold">Workflow Verificado</span>
+                </span>
+            </div>
 
-function setSource(src) {
-  S.imgSource = src;
-  const list = S.mode==='image' ? IMG_SOURCES[src] : VID_SOURCES[src];
-  if(list && list.length) {
-    S.classType = list[0].id;
-    if(list[0].model) S.runwayModel = list[0].model;
-  }
-  renderApiPills(); renderModelCards(); updateAll();
-}
+            <!-- CONTENEDOR DE CONTENIDO (DINÁMICO) -->
+            <div class="flex-1 overflow-hidden relative">
+                
+                <!-- CANVAS DE NODOS (INTERACTIVO) -->
+                <div id="visual-canvas" class="absolute inset-0 comfy-grid overflow-auto p-8 scrollbar-custom flex items-center justify-center min-h-full">
+                    <!-- CONTENEDOR CON CONEXIONES SVG -->
+                    <div class="relative w-[1100px] h-[550px]" id="canvas-workspace">
+                        <!-- Capa de Líneas de Conexión (Curvas Bezier) -->
+                        <svg class="absolute inset-0 w-full h-full pointer-events-none" id="connections-svg">
+                            <!-- Inyectado dinámicamente por JavaScript -->
+                        </svg>
 
-// ── MODEL CARDS ────────────────────────────────────────────────
-function renderModelCards() {
-  const src = S.imgSource;
-  const list = S.mode==='image' ? (IMG_SOURCES[src]||[]) : (VID_SOURCES[src]||[]);
-  const c = document.getElementById('model-cards-container');
-  c.innerHTML = list.map((m,i) => {
-    const sel = (m.id===S.classType && (!m.model || m.model===S.runwayModel));
-    const costC = m.danger?'text-red-400 bg-red-950':'text-emerald-400 bg-emerald-950/80';
-    return `<div onclick="selectModel('${m.id}','${m.model||''}')" class="cursor-pointer border rounded-lg px-3 py-2.5 transition-all relative ${sel?'border-flama-500 bg-flama-500/10':'border-slate-800 bg-slate-950 hover:border-slate-600'}">
-      ${sel?'<div class="absolute left-0 top-0 bottom-0 w-0.5 bg-flama-500 rounded-l-lg"></div>':''}
-      <div class="flex items-center justify-between">
-        <span class="font-semibold text-xs ${sel?'text-white':'text-slate-300'}">${m.name}${m.star?' <span class="text-flama-400">★</span>':''}</span>
-        <span class="text-[10px] font-mono px-2 py-0.5 rounded-full ${costC}">${m.cost}</span>
-      </div>
-      <div class="text-[9px] font-mono text-slate-600 mt-0.5">${m.id}</div>
-      <div class="text-[10px] text-slate-500 mt-0.5">${m.note}</div>
-    </div>`;
-  }).join('');
-}
+                        <!-- Capas de Nodos -->
+                        <div id="nodes-container" class="absolute inset-0 pointer-events-none">
+                            <!-- Inyectados dinámicamente por JS con clases pointer-events-auto -->
+                        </div>
+                    </div>
+                </div>
 
-function selectModel(id, model) {
-  S.classType = id;
-  if(model) S.runwayModel = model;
-  renderModelCards(); updateAll();
-}
+                <!-- CÓDIGO JSON (EDITABLE) -->
+                <div id="visual-json" class="hidden absolute inset-0 bg-[#070913] overflow-auto p-6 scrollbar-custom font-mono text-xs text-emerald-400 select-text">
+                    <pre class="w-full h-full"><code id="json-code-block" class="whitespace-pre-wrap"></code></pre>
+                </div>
 
-// ── TOGGLE BUTTONS ─────────────────────────────────────────────
-function setVal(group, val, btn) {
-  if(group==='quality') S.quality=val;
-  else if(group==='ratio') S.ratio=val;
-  else if(group==='duration') S.duration=val;
-  else if(group==='resolution') S.resolution=val;
-  document.querySelectorAll(`[data-group="${group}"]`).forEach(b => {
-    b.className = b.className.replace(/border-flama-500 bg-flama-500\/10 text-flama-400/g,'border-slate-700 text-slate-400 hover:text-white');
-  });
-  btn.className = btn.className.replace('border-slate-700 text-slate-400 hover:text-white','border-flama-500 bg-flama-500/10 text-flama-400');
-  updateAll();
-}
+            </div>
+        </section>
+    </main>
 
-// ── REFS ───────────────────────────────────────────────────────
-function handleRefsChange() {
-  const v = parseInt(document.getElementById('config-refs').value);
-  S.refs = v;
-  document.getElementById('ref-count-badge').textContent = `${v} ${v===1?'imagen':'imgs'}`;
-  const grid = document.getElementById('ref-names-grid');
-  if(v>0) {
-    grid.classList.remove('hidden');
-    grid.className = `grid gap-1.5 mt-2 ${v<=3?'grid-cols-'+v:'grid-cols-3'}`;
-    grid.innerHTML = Array.from({length:v},(_,i)=>`
-      <div class="bg-slate-950 border border-dashed border-slate-700 focus-within:border-flama-500 rounded-lg p-1.5 transition-all">
-        <div class="text-[8px] font-mono text-slate-600 mb-1">IMG ${i+1}</div>
-        <input type="text" placeholder="archivo.png" id="ref${i}" oninput="updateAll()" class="bg-transparent border-none text-slate-300 text-[10px] font-mono w-full focus:outline-none">
-      </div>`).join('');
-  } else {
-    grid.classList.add('hidden');
-  }
-  updateAll();
-}
+    <!-- FOOTER -->
+    <footer class="bg-slate-950 border-t border-slate-900 py-3 px-6 flex justify-between items-center gap-4 text-xs font-mono text-slate-500 shrink-0">
+        <span>© 2026 FLAMA.MEDIA. Todos los derechos reservados.</span>
+        <span class="text-flama-500/70">Diseñado para Apple Silicon M1 Pro & fal.ai API</span>
+    </footer>
 
-// ── ALERTS ────────────────────────────────────────────────────
-function updateAlerts() {
-  document.getElementById('alert-sora').classList.toggle('hidden', S.classType!=='Sora2Pro_fal');
-  document.getElementById('alert-seedance').classList.toggle('hidden', S.classType!=='SeedanceImageToVideo_fal');
-  document.getElementById('alert-runway').classList.toggle('hidden', S.classType!=='RunwayImageToVideoFLAMA');
-  document.getElementById('section-end-frame').classList.toggle('hidden', S.classType!=='KlingOmniImageToVideo_fal');
-  document.getElementById('section-resolution').classList.toggle('hidden', S.classType!=='SeedanceImageToVideo_fal');
-}
+    <!-- LÓGICA DE CONTROL DEL GENERADOR (SISTEMA DE WORKFLOWS DE COMPYUI) -->
+    <script>
+        // ESTADO GLOBAL DE LA APLICACIÓN
+        let appState = {
+            activePanelTab: 'presets', // presets | custom
+            activeVisualTab: 'canvas', // canvas | json
+            mode: 'video', // image | video
+            ratio: '16:9',
+            res: '1080p',
+            model: 'Veo31_fal',
+            refs: 1,
+            duration: '8',
+            frameControl: 'first', // first | start-end | text-only
+            prompt: 'Fotografía comercial macro de alta gama, perfume de lujo en botella de cristal tallado minimalista, gotas de condensación sobre el vidrio, iluminación de estudio suave con tonos ámbar y dorados, fondo oscuro degradado, fotorrealismo extremo, 8k.',
+            negative: 'low quality, blur, distort, deformed product, morphing',
+            imgVariants: 1,
+            vidVariants: 1
+        };
 
-// ── COST ──────────────────────────────────────────────────────
-function updateCost() {
-  const costs = {
-    'NanoBanana2AIO':0.04,'NanaBanana2AIO':0.06,'GPTImage15_fal':0.054,'GPTImage2_fal':0.054,
-    'FluxPro_fal':0.032,'FluxUltra_fal':0.06,'Imagen4Preview_fal':0.04,'Ideogramv3_fal':0.03,
-    'KlingV3Pro_fal':0.54,'Veo31_fal':0.84,'Veo31Fast_fal':0.54,'KlingV3Standard_fal':0.34,
-    'KlingOmniImageToVideo_fal':0.44,'SeedanceImageToVideo_fal':1.25,'Sora2Pro_fal':2.04,'RunwayImageToVideoFLAMA':0.54
-  };
-  const c = costs[S.classType]||0;
-  document.getElementById('costo-total').textContent = '$'+c.toFixed(2);
-}
+        // BASE DE DATOS DE MOTORES DISPONIBLES (SEGUN ARCHIVO SKILL DE JUNIO 2026)
+        const imageModels = [
+            { id: 'GPTImage2_fal', name: 'GPT Image 2 (OpenAI - Luxury & Edit)', cost: 0.08 },
+            { id: 'NanoBanana2AIO', name: 'Gemini 3.1 Flash (NanoBanana2AIO - Principal)', cost: 0.04 },
+            { id: 'NanoBananaPro_fal', name: 'Nano Banana Pro (fal.ai)', cost: 0.06 },
+            { id: 'FluxProKontext_fal', name: 'Flux Pro Kontext (Ref. Img-a-Img)', cost: 0.08 },
+            { id: 'FluxPro_fal', name: 'Flux Pro (Fotorrealismo General)', cost: 0.05 },
+            { id: 'FluxUltra_fal', name: 'Flux Ultra (Máxima Calidad Flux)', cost: 0.09 },
+            { id: 'Imagen4Preview_fal', name: 'Google Imagen 4 Preview', cost: 0.06 }
+        ];
 
-// ── JSON BUILD (formato workflow correcto para drag & drop) ────
-function buildWorkflow() {
-  const prompt = document.getElementById('config-prompt')?.value || S.prompt;
-  const prefix = document.getElementById('config-prefix')?.value || 'FLAMA/output';
+        const videoModels = [
+            { id: 'KlingV3Pro_fal', name: 'Kling V3 Pro (Máxima fidelidad a producto)', cost: 0.50 },
+            { id: 'Veo31_fal', name: 'Google Veo 3.1 (Cinematografía Premium 1080p)', cost: 0.80 },
+            { id: 'KlingOmniImageToVideo_fal', name: 'Kling Omni (Excelente Control Start/End)', cost: 0.50 },
+            { id: 'RunwayImageToVideoFLAMA', name: 'Runway Gen4.5 (FLAMA Custom Guardado)', cost: 0.40 },
+            { id: 'Veo31Fast_fal', name: 'Veo 3.1 Fast (Rápido)', cost: 0.45 },
+            { id: 'KlingOmniReferenceToVideo_fal', name: 'Kling Omni 2 Refs Simultáneas', cost: 0.55 },
+            { id: 'SeedanceImageToVideo_fal', name: 'Seedance Image to Video (720p)', cost: 1.21 },
+            { id: 'Sora2Pro_fal', name: 'Sora 2 Pro (Mundo/Naturaleza - NO producto)', cost: 2.00 }
+        ];
 
-  if(S.mode==='image') return buildImageWorkflow(prompt, prefix);
-  return buildVideoWorkflow(prompt, prefix);
-}
+        // INICIALIZADOR AL CARGAR LA PÁGINA
+        window.onload = function() {
+            lucide.createIcons();
+            populateModelDropdown();
+            updateConfig();
+            
+            // Forzar actualización de líneas al redimensionar la ventana
+            window.addEventListener('resize', drawConnections);
+            
+            // Mostrar mensaje de bienvenida
+            showToast('Arquitecto Activado', 'Bienvenido a FLAMA.MEDIA Workflow Engine.', 'sparkles');
+        };
 
-function buildImageWorkflow(prompt, prefix) {
-  const refs = S.refs>0 ? Array.from({length:S.refs},(_,i)=>{
-    const el = document.getElementById('ref'+i); return el?el.value:'';
-  }).filter(v=>v.trim()!=='') : [];
+        // LLENAR SELECT DE MODELOS SEGÚN EL MODO (IMAGEN O VIDEO)
+        function populateModelDropdown() {
+            const select = document.getElementById('config-model');
+            select.innerHTML = '';
+            
+            const models = appState.mode === 'image' ? imageModels : videoModels;
+            models.forEach(model => {
+                const opt = document.createElement('option');
+                opt.value = model.id;
+                opt.textContent = `${model.name} [~$${model.cost}]`;
+                if(model.id === appState.model) opt.selected = true;
+                select.appendChild(opt);
+            });
+        }
 
-  let nodes=[], links=[], lastNode=0, lastLink=0;
-  const ct = S.classType;
+        // CONTROL DE TABS DEL PANEL IZQUIERDO
+        function switchPanelTab(tab) {
+            appState.activePanelTab = tab;
+            const presetsBtn = document.getElementById('tab-presets-btn');
+            const customBtn = document.getElementById('tab-custom-btn');
+            const presetsDiv = document.getElementById('panel-presets');
+            const customDiv = document.getElementById('panel-custom');
 
-  let genWidgets=[];
-  if(ct==='NanoBanana2AIO'||ct==='NanaBanana2AIO') genWidgets=[prompt,1,S.ratio,S.quality,1.0,-1];
-  else if(ct==='GPTImage15_fal'||ct==='GPTImage2_fal') genWidgets=[prompt,S.quality==='4K'?'hd':'standard',S.ratio,1,-1];
-  else genWidgets=[prompt,1,S.ratio,S.quality,-1];
+            if (tab === 'presets') {
+                presetsBtn.className = "flex-1 py-2 text-xs font-semibold rounded-lg flex items-center justify-center gap-2 transition-all bg-flama-500 text-white shadow-lg shadow-flama-600/10";
+                customBtn.className = "flex-1 py-2 text-xs font-semibold rounded-lg flex items-center justify-center gap-2 transition-all text-slate-400 hover:text-white";
+                presetsDiv.classList.remove('hidden');
+                customDiv.classList.add('hidden');
+            } else {
+                customBtn.className = "flex-1 py-2 text-xs font-semibold rounded-lg flex items-center justify-center gap-2 transition-all bg-flama-500 text-white shadow-lg shadow-flama-600/10";
+                presetsBtn.className = "flex-1 py-2 text-xs font-semibold rounded-lg flex items-center justify-center gap-2 transition-all text-slate-400 hover:text-white";
+                customDiv.classList.remove('hidden');
+                presetsDiv.classList.add('hidden');
+            }
+        }
 
-  let refNodeIds=[];
-  if(refs.length>0) {
-    refs.forEach((ref,i)=>{
-      const nid=++lastNode; refNodeIds.push(nid);
-      nodes.push({id:nid,type:'LoadImage',pos:[20,20+i*120],size:{'0':260,'1':100},flags:{},order:i,mode:0,inputs:[],outputs:[{name:'IMAGE',type:'IMAGE',links:[]}],properties:{'Node name for S&R':'LoadImage'},widgets_values:[ref,'image'],_meta:{title:'Referencia '+(i+1)}});
-    });
-  }
+        // CONTROL DE TABS VISUALES (CANVAS / JSON)
+        function switchVisualTab(tab) {
+            appState.activeVisualTab = tab;
+            const canvasBtn = document.getElementById('tab-canvas-btn');
+            const jsonBtn = document.getElementById('tab-json-btn');
+            const canvasDiv = document.getElementById('visual-canvas');
+            const jsonDiv = document.getElementById('visual-json');
 
-  const genId=++lastNode, saveId=++lastNode;
-  let genInputs=refs.length>0?refs.map((_,i)=>({name:'image_'+(i+1),type:'IMAGE',link:i+1})):[];
+            if (tab === 'canvas') {
+                canvasBtn.className = "px-4 py-1.5 text-xs font-bold rounded-md transition-all bg-slate-800 text-white";
+                jsonBtn.className = "px-4 py-1.5 text-xs font-bold rounded-md transition-all text-slate-400 hover:text-slate-200";
+                canvasDiv.classList.remove('hidden');
+                jsonDiv.classList.add('hidden');
+                setTimeout(drawConnections, 50); // Redibujar líneas al renderizar
+            } else {
+                jsonBtn.className = "px-4 py-1.5 text-xs font-bold rounded-md transition-all bg-slate-800 text-white";
+                canvasBtn.className = "px-4 py-1.5 text-xs font-bold rounded-md transition-all text-slate-400 hover:text-slate-200";
+                jsonDiv.classList.remove('hidden');
+                canvasDiv.classList.add('hidden');
+            }
+        }
 
-  refNodeIds.forEach((rid,i)=>{
-    const lid=i+1; lastLink=Math.max(lastLink,lid);
-    links.push({id:lid,origin_id:rid,origin_slot:0,target_id:genId,target_slot:i,type:'IMAGE'});
-    nodes.find(n=>n.id===rid).outputs[0].links.push(lid);
-  });
+        // CAMBIAR ENTRE MODO IMAGEN Y VIDEO
+        function setMode(mode) {
+            appState.mode = mode;
+            
+            const imgBtn = document.getElementById('mode-image-btn');
+            const vidBtn = document.getElementById('mode-video-btn');
+            const imgSection = document.getElementById('section-image-refs');
+            const vidSection = document.getElementById('section-video-config');
 
-  const imgLink=++lastLink;
-  nodes.push({id:genId,type:ct,pos:[320,120],size:{'0':380,'1':200},flags:{},order:refNodeIds.length,mode:0,inputs:genInputs,outputs:[{name:'IMAGE',type:'IMAGE',links:[imgLink]}],properties:{'Node name for S&R':ct},widgets_values:genWidgets,_meta:{title:ct}});
-  nodes.push({id:saveId,type:'SaveImage',pos:[740,120],size:{'0':260,'1':120},flags:{},order:refNodeIds.length+1,mode:0,inputs:[{name:'images',type:'IMAGE',link:imgLink}],outputs:[],properties:{'Node name for S&R':'SaveImage'},widgets_values:[prefix],_meta:{title:'Guardar Imagen'}});
-  links.push({id:imgLink,origin_id:genId,origin_slot:0,target_id:saveId,target_slot:0,type:'IMAGE'});
-  return {last_node_id:saveId,last_link_id:lastLink,nodes,links,groups:[],config:{},extra:{},version:0.4};
-}
+            if (mode === 'image') {
+                imgBtn.className = "py-2.5 rounded-xl border font-bold text-xs flex items-center justify-center gap-2 bg-slate-950 border-flama-500 text-flama-400 transition-all";
+                vidBtn.className = "py-2.5 rounded-xl border font-bold text-xs flex items-center justify-center gap-2 bg-slate-950 border-slate-800 text-slate-400 hover:text-white transition-all";
+                imgSection.classList.remove('hidden');
+                vidSection.classList.add('hidden');
+                appState.model = 'GPTImage2_fal';
+                appState.res = '2K';
+            } else {
+                vidBtn.className = "py-2.5 rounded-xl border font-bold text-xs flex items-center justify-center gap-2 bg-slate-950 border-flama-500 text-flama-400 transition-all";
+                imgBtn.className = "py-2.5 rounded-xl border font-bold text-xs flex items-center justify-center gap-2 bg-slate-950 border-slate-800 text-slate-400 hover:text-white transition-all";
+                vidSection.classList.remove('hidden');
+                imgSection.classList.add('hidden');
+                appState.model = 'KlingV3Pro_fal';
+                appState.res = '1080p';
+            }
 
-function buildVideoWorkflow(prompt, prefix) {
-  const ct = S.classType;
-  const isRunway = ct==='RunwayImageToVideoFLAMA';
-  const imgFile = document.getElementById('vid-img-input')?.value||'imagen.png';
-  const endFile = document.getElementById('vid-endimg-input')?.value||'';
+            // Actualizar selector de resolución por defecto
+            document.getElementById('config-res').value = appState.res;
 
-  let nodes=[], linksArr=[];
-  const loadId=1, genId=2, saveId=3, endId=4;
+            populateModelDropdown();
+            updateConfig();
+        }
 
-  nodes.push({id:loadId,type:'LoadImage',pos:[30,120],size:{'0':260,'1':100},flags:{},order:0,mode:0,inputs:[],outputs:[{name:'IMAGE',type:'IMAGE',links:[1]}],properties:{'Node name for S&R':'LoadImage'},widgets_values:[imgFile,'image'],_meta:{title:'Imagen de entrada'}});
+        // CUANDO EL USUARIO CAMBIA EL MOTOR DE IA EN EL SELECT
+        function handleModelChange() {
+            appState.model = document.getElementById('config-model').value;
+            
+            // Lógica de validación rápida según modelo
+            if (appState.model === 'KlingOmniImageToVideo_fal') {
+                appState.frameControl = 'start-end';
+                document.getElementById('config-frame-control').value = 'start-end';
+            } else if (appState.model === 'RunwayImageToVideoFLAMA') {
+                appState.res = '720p';
+                appState.ratio = '16:9';
+                document.getElementById('config-res').value = '720p';
+                document.getElementById('config-ratio').value = '16:9';
+            }
+            
+            updateConfig();
+        }
 
-  if(ct==='KlingOmniImageToVideo_fal'&&endFile) {
-    nodes.push({id:endId,type:'LoadImage',pos:[30,280],size:{'0':260,'1':100},flags:{},order:1,mode:0,inputs:[],outputs:[{name:'IMAGE',type:'IMAGE',links:[5]}],properties:{'Node name for S&R':'LoadImage'},widgets_values:[endFile,'image'],_meta:{title:'Frame final'}});
-  }
+        // MANEJAR EL DESLIZADOR DE IMÁGENES DE REFERENCIA
+        function handleRefsChange() {
+            const val = document.getElementById('config-refs').value;
+            appState.refs = parseInt(val);
+            document.getElementById('ref-count-badge').textContent = `${val} ${val == 1 ? 'imagen' : 'imágenes'}`;
+            updateConfig();
+        }
 
-  let genWidgets=[], genInputs=[{name:'image',type:'IMAGE',link:1}];
-  if(ct==='KlingV3Pro_fal'||ct==='KlingV3Standard_fal'){genWidgets=[prompt,S.duration,S.ratio,'standard','blur, distort, low quality',0.5,false,-1];}
-  else if(ct==='Veo31_fal'||ct==='Veo31Fast_fal'){genWidgets=[prompt,S.duration+'s',S.ratio,'1080p',false,-1];genInputs=[{name:'first_frame',type:'IMAGE',link:1}];}
-  else if(ct==='KlingOmniImageToVideo_fal'){genWidgets=[prompt,S.duration,1,-1];genInputs=[{name:'start_image',type:'IMAGE',link:1}];if(endFile)genInputs.push({name:'end_image',type:'IMAGE',link:5});}
-  else if(ct==='SeedanceImageToVideo_fal'){genWidgets=[prompt,S.resolution,S.ratio,S.duration,false,-1];}
-  else if(ct==='Sora2Pro_fal'){genWidgets=[prompt,S.ratio,'1080p',parseInt(S.duration),false,-1];}
-  else if(isRunway){genWidgets=[prompt,S.duration,S.runwayModel,S.ratio,prefix];}
+        // MANEJAR EL CONTROL DE FRAME (VIDEO)
+        function handleFrameControlChange() {
+            appState.frameControl = document.getElementById('config-frame-control').value;
+            updateConfig();
+        }
 
-  nodes.push({id:genId,type:ct,pos:[340,120],size:{'0':380,'1':220},flags:{},order:2,mode:0,inputs:genInputs,outputs:[{name:isRunway?'filepath':'video_url',type:'STRING',links:isRunway?[]:[2]}],properties:{'Node name for S&R':ct},widgets_values:genWidgets,_meta:{title:ct}});
+        // ACTUALIZACIÓN GENERAL DE CONFIGURACIÓN Y REBUILD DE CÓDIGO/CANVAS
+        function updateConfig() {
+            // Leer campos del panel custom siempre que existan en el DOM
+            const ratioEl = document.getElementById('config-ratio');
+            const resEl = document.getElementById('config-res');
+            const promptEl = document.getElementById('config-prompt');
+            const negEl = document.getElementById('config-negative');
+            const durEl = document.getElementById('config-duration');
 
-  linksArr.push({id:1,origin_id:loadId,origin_slot:0,target_id:genId,target_slot:0,type:'IMAGE'});
-  if(ct==='KlingOmniImageToVideo_fal'&&endFile) linksArr.push({id:5,origin_id:endId,origin_slot:0,target_id:genId,target_slot:1,type:'IMAGE'});
+            if (ratioEl) appState.ratio = ratioEl.value;
+            if (resEl) appState.res = resEl.value;
+            if (promptEl && promptEl.value) appState.prompt = promptEl.value;
+            if (negEl) appState.negative = negEl.value;
+            if (durEl && appState.mode === 'video') appState.duration = durEl.value;
 
-  let lastNode=genId, lastLink=1;
-  if(!isRunway){
-    nodes.push({id:saveId,type:'SaveVideoFromURL',pos:[770,120],size:{'0':280,'1':120},flags:{},order:3,mode:0,inputs:[{name:'video_url',type:'STRING',link:2}],outputs:[],properties:{'Node name for S&R':'SaveVideoFromURL'},widgets_values:[prefix],_meta:{title:'Guardar Video URL (FLAMA)'}});
-    linksArr.push({id:2,origin_id:genId,origin_slot:0,target_id:saveId,target_slot:0,type:'STRING'});
-    lastNode=saveId; lastLink=2;
-  }
-  return {last_node_id:lastNode,last_link_id:lastLink,nodes,links:linksArr,groups:[],config:{},extra:{},version:0.4};
-}
+            // Validar reglas críticas de Runway Gen4.5
+            const warningDiv = document.getElementById('validation-warning');
+            if (appState.model === 'RunwayImageToVideoFLAMA' && appState.ratio !== '16:9') {
+                warningDiv.classList.remove('hidden');
+                document.getElementById('validation-msg').textContent = '⚠️ Runway gen4.5 requiere resolución estricta de 1280x720 (Ratio 16:9). Se autoajustará el ratio al generar el JSON para evitar errores.';
+            } else {
+                warningDiv.classList.add('hidden');
+            }
 
-// ── SYNTAX HIGHLIGHT ───────────────────────────────────────────
-function hl(json) {
-  return json.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,m=>{
-      if(/^"/.test(m)) return /:$/.test(m)?`<span class="json-key">${m}</span>`:`<span class="json-str">${m}</span>`;
-      if(/true|false/.test(m)) return `<span class="json-bool">${m}</span>`;
-      return `<span class="json-num">${m}</span>`;
-    });
-}
+            // Calcular Costo Estimado
+            calculateEstimatedCost();
 
-// ── CANVAS RENDER ──────────────────────────────────────────────
-function renderCanvas(wf) {
-  const nc = document.getElementById('nodes-container');
-  const svg = document.getElementById('connections-svg');
-  if(!wf||!wf.nodes) { nc.innerHTML=''; svg.innerHTML=''; return; }
+            // Generar JSON correcto (formato workflow drag & drop) — SIEMPRE
+            const workflowJSON = generateWorkflowJSON();
+            document.getElementById('json-code-block').textContent = JSON.stringify(workflowJSON, null, 2);
 
-  const nodeColors = { LoadImage:'#1e2a1e', SaveImage:'#1a1a2e', SaveVideoFromURL:'#1a2020' };
-  const accentColors = { LoadImage:'#22c55e', SaveImage:'#60a5fa', SaveVideoFromURL:'#f59e0b' };
+            // Re-renderizar Nodos del Canvas
+            renderCanvasNodes();
+        }
 
-  nc.innerHTML = wf.nodes.map(n=>{
-    const x=n.pos[0], y=n.pos[1], w=n.size['0'], h=n.size['1'];
-    const bg=nodeColors[n.type]||'#1a1020';
-    const ac=accentColors[n.type]||'#e8642a';
-    const isMain = !nodeColors[n.type];
-    const border = isMain ? 'border-2 border-flama-500/70 shadow-[0_0_20px_rgba(232,100,42,0.15)]' : 'border border-slate-700/80';
-    const idColor = isMain ? 'text-flama-300 bg-flama-950 border-flama-900' : 'text-emerald-400 bg-emerald-950 border-emerald-900';
-    const preview = n.widgets_values?.[0]||'';
-    const previewText = typeof preview==='string' && preview.length>0 ? preview.substring(0,50)+(preview.length>50?'…':'') : '';
+        // CARGAR UNO DE LOS PRESETS MAESTROS VERIFICADOS
+        function loadPreset(presetId) {
+            switch(presetId) {
+                case 'img-gpt-916-2k':
+                    appState.mode = 'image';
+                    appState.model = 'GPTImage2_fal';
+                    appState.ratio = '9:16';
+                    appState.res = '2K';
+                    appState.refs = 6;
+                    appState.prompt = 'Primer plano macro publicitario de reloj suizo de platino y oro rosa, detalles de engranajes, sumergido parcialmente bajo agua cristalina con burbujas finas, iluminación de estudio espectacular, alta gama, lujo.';
+                    break;
+                case 'img-gpt-169-4k':
+                    appState.mode = 'image';
+                    appState.model = 'GPTImage2_fal';
+                    appState.ratio = '16:9';
+                    appState.res = '4K';
+                    appState.refs = 3;
+                    appState.prompt = 'Fotografía comercial editorial de frasco de perfume negro mate de lujo, sobre roca volcánica mojada, olas rompiendo suavemente al atardecer de fondo, luz dorada cinematográfica, render premium, 8k.';
+                    break;
+                case 'img-nano-916-2k':
+                    appState.mode = 'image';
+                    appState.model = 'NanoBananaPro_fal';
+                    appState.ratio = '9:16';
+                    appState.res = '2K';
+                    appState.refs = 4;
+                    appState.prompt = 'Anuncio elegante para marca de joyería, collar de diamantes en corte brillante flotando en atmósfera etérea con partículas doradas de polvo brillante, fotorrealismo de nivel comercial.';
+                    break;
+                case 'img-nano-169-4k':
+                    appState.mode = 'image';
+                    appState.model = 'NanoBananaPro_fal';
+                    appState.ratio = '16:9';
+                    appState.res = '4K';
+                    appState.refs = 1;
+                    appState.prompt = 'Paisaje de worldbuilding futurista, ciudad ciberpunk costera, edificios orgánicos cubiertos de vegetación luminiscente, naves elegantes sobrevolando en el crepúsculo, atmósfera húmeda y cinematográfica.';
+                    break;
+                case 'vid-kling-luxury':
+                    appState.mode = 'video';
+                    appState.model = 'KlingV3Pro_fal';
+                    appState.ratio = '16:9';
+                    appState.res = '1080p';
+                    appState.frameControl = 'first';
+                    appState.duration = '8';
+                    appState.prompt = 'Cámara lenta elegante que gira alrededor de un frasco de perfume negro. Líquido dorado salpica majestuosamente en el aire, reflejos hiperrealistas de iluminación de estudio de lujo.';
+                    break;
+                case 'vid-veo-premium':
+                    appState.mode = 'video';
+                    appState.model = 'Veo31_fal';
+                    appState.ratio = '16:9';
+                    appState.res = '1080p';
+                    appState.frameControl = 'first';
+                    appState.duration = '8';
+                    appState.prompt = 'Paneo de cámara ultra suave, revelando detalles de un auto deportivo eléctrico rodando suavemente en una carretera iluminada por luces de neón en una noche lluviosa de Tokio.';
+                    break;
+                case 'vid-omni-sequence':
+                    appState.mode = 'video';
+                    appState.model = 'KlingOmniImageToVideo_fal';
+                    appState.ratio = '9:16';
+                    appState.res = '1080p';
+                    appState.frameControl = 'start-end';
+                    appState.duration = '5';
+                    appState.prompt = 'Transición cinemática fluida mostrando una taza de café caliente derramando vapor en el frame inicial, que progresa hasta verse enfriada y helada con cristales de hielo en el frame final.';
+                    break;
+                case 'vid-runway-flama':
+                    appState.mode = 'video';
+                    appState.model = 'RunwayImageToVideoFLAMA';
+                    appState.ratio = '16:9';
+                    appState.res = '720p';
+                    appState.frameControl = 'first';
+                    appState.duration = '5';
+                    appState.prompt = 'Simulación de producto premium. Animación 3D fluida del movimiento de cámara acercándose a un smartphone plegable futurista abriéndose de manera sofisticada.';
+                    break;
+            }
 
-    return `<div class="absolute rounded-xl p-3 pointer-events-auto ${border}" style="left:${x}px;top:${y}px;width:${w}px;min-height:${h}px;background:${bg};">
-      <div class="flex justify-between items-center border-b pb-1.5 mb-2" style="border-color:${ac}22">
-        <span class="text-[11px] font-bold font-mono" style="color:${ac}">${n.type}</span>
-        <span class="text-[9px] font-mono px-1.5 py-0.5 rounded border ${idColor}">ID:${n.id}</span>
-      </div>
-      ${previewText ? `<div class="text-[9px] text-slate-500 font-mono truncate mt-1">"${previewText}"</div>` : ''}
-      ${n.inputs&&n.inputs.length?n.inputs.map((inp,i)=>`
-        <div class="flex items-center gap-1.5 mt-1.5" id="port-in-${n.id}-${i}">
-          <div class="w-3 h-3 rounded-full border-2 border-slate-900 flex-shrink-0" style="background:${ac}"></div>
-          <span class="text-[9px] font-mono text-slate-500">${inp.name}</span>
-        </div>`).join('') : ''}
-      ${n.outputs&&n.outputs.length?n.outputs.map((out,i)=>`
-        <div class="flex items-center justify-end gap-1.5 mt-1.5" id="port-out-${n.id}-${i}">
-          <span class="text-[9px] font-mono text-slate-500">${out.name}</span>
-          <div class="w-3 h-3 rounded-full border-2 border-slate-900 flex-shrink-0" style="background:${ac}"></div>
-        </div>`).join('') : ''}
-    </div>`;
-  }).join('');
+            // Sincronizar UI con el preset cargado
+            document.getElementById('config-ratio').value = appState.ratio;
+            document.getElementById('config-res').value = appState.res;
+            document.getElementById('config-prompt').value = appState.prompt;
+            document.getElementById('config-refs').value = appState.refs;
+            document.getElementById('ref-count-badge').textContent = `${appState.refs} ${appState.refs == 1 ? 'imagen' : 'imágenes'}`;
+            
+            if (appState.mode === 'video') {
+                document.getElementById('config-duration').value = appState.duration;
+                document.getElementById('config-frame-control').value = appState.frameControl;
+            }
 
-  setTimeout(()=>drawConnectionsFromWorkflow(wf), 60);
-}
+            switchPanelTab('custom'); // Cambiar a pestaña personalizado para ver los valores
+            setMode(appState.mode); // Esto poblará el dropdown del motor adecuado
+            showToast('Preset Cargado', 'Workflow configurado correctamente.', 'check-circle');
+        }
 
-function drawConnectionsFromWorkflow(wf) {
-  const svg = document.getElementById('connections-svg');
-  const ws = document.getElementById('canvas-workspace');
-  const wsRect = ws.getBoundingClientRect();
-  if(!wf||!wf.links) { svg.innerHTML=''; return; }
+        // CALCULAR EL COSTO ESTIMADO DE PRODUCCIÓN
+        function calculateEstimatedCost() {
+            let total = 0;
+            
+            // Costo imagen base / generadores
+            if (appState.mode === 'image') {
+                const modelData = imageModels.find(m => m.id === appState.model);
+                total += modelData ? modelData.cost : 0.05;
+            } else {
+                // Modo Video (Por lo general tiene un generador de imagen inicial y luego el modelo de video)
+                if (appState.frameControl !== 'text-only') {
+                    total += 0.04; // Costo estimado de NanoBanana2AIO para el primer frame
+                }
+                const modelData = videoModels.find(m => m.id === appState.model);
+                total += modelData ? modelData.cost : 0.50;
+            }
 
-  svg.innerHTML = wf.links.map(lk=>{
-    const fromPortEl = document.getElementById(`port-out-${lk.origin_id}-${lk.origin_slot}`);
-    const toPortEl = document.getElementById(`port-in-${lk.target_id}-0`);
-    if(!fromPortEl||!toPortEl) return '';
-    const fr = fromPortEl.getBoundingClientRect();
-    const tr = toPortEl.getBoundingClientRect();
-    const x1=fr.right-wsRect.left, y1=fr.top+fr.height/2-wsRect.top;
-    const x2=tr.left-wsRect.left, y2=tr.top+tr.height/2-wsRect.top;
-    const cx=(x1+x2)/2;
-    const isImg = lk.type==='IMAGE';
-    return `<path d="M${x1},${y1} C${cx},${y1} ${cx},${y2} ${x2},${y2}" fill="none" stroke="${isImg?'#e8642a':'#fbbf24'}" stroke-width="1.5" stroke-opacity="0.7" class="node-cable"/>`;
-  }).join('');
-}
+            document.getElementById('costo-total').textContent = `$${total.toFixed(2)} USD`;
+        }
 
-function drawConnections() {
-  const wf = buildWorkflow();
-  if(wf) drawConnectionsFromWorkflow(wf);
-}
+        // ── MOTOR JSON CORRECTO (formato workflow drag & drop ComfyUI) ──────────
+        // Reemplaza la función original de Gemini que generaba formato API incorrecto
+        function generateWorkflowJSON() {
+            const prompt = appState.prompt || '';
+            const prefix = 'FLAMA/output';
 
-// ── MAIN UPDATE ────────────────────────────────────────────────
-function updateAll() {
-  updateAlerts(); updateCost();
-  const wf = buildWorkflow();
-  document.getElementById('json-code-block').innerHTML = hl(JSON.stringify(wf,null,2));
-  renderCanvas(wf);
-}
+            if (appState.mode === 'image') {
+                return buildImageWorkflow(prompt, prefix);
+            } else {
+                return buildVideoWorkflow(prompt, prefix);
+            }
+        }
 
-// ── DOWNLOAD ───────────────────────────────────────────────────
-function downloadWorkflow() {
-  const wf = buildWorkflow();
-  const blob = new Blob([JSON.stringify(wf,null,2)],{type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  const ts = new Date().toISOString().slice(0,16).replace('T','_').replace(':','h');
-  a.href=url; a.download=`FLAMA_${S.mode}_${S.classType}_${ts}.json`; a.click();
-  URL.revokeObjectURL(url);
-  const btn = document.getElementById('btn-download');
-  btn.innerHTML='<i data-lucide="check" class="w-4 h-4 inline mr-1"></i> JSON descargado';
-  btn.className=btn.className.replace('bg-flama-500 hover:bg-flama-600','bg-emerald-600 hover:bg-emerald-700');
-  lucide.createIcons();
-  setTimeout(()=>{
-    btn.innerHTML='<i data-lucide="download" class="w-4 h-4 inline mr-1"></i> Generar y descargar JSON';
-    btn.className=btn.className.replace('bg-emerald-600 hover:bg-emerald-700','bg-flama-500 hover:bg-flama-600');
-    lucide.createIcons();
-  },2500);
-  showToast('JSON descargado','Arrastra el archivo al canvas de ComfyUI.','download');
-}
+        function buildImageWorkflow(prompt, prefix) {
+            const ct = appState.model;
+            const ratio = appState.ratio;
+            const quality = appState.res === '4K' ? '4K' : '2K';
+            const refs = appState.refs || 0;
+            const count = appState.imgVariants || 1;
 
-function copyToClipboard() {
-  const txt = JSON.stringify(buildWorkflow(),null,2);
-  navigator.clipboard.writeText(txt).then(()=>showToast('JSON copiado','Pega con Ctrl+V en ComfyUI.','copy'));
-}
+            let nodes = [], links = [], lastNode = 0, lastLink = 0;
 
-// ── TOAST ──────────────────────────────────────────────────────
-function showToast(title, msg, icon) {
-  const t=document.getElementById('toast');
-  document.getElementById('toast-title').textContent=title;
-  document.getElementById('toast-msg').textContent=msg;
-  document.getElementById('toast-icon').innerHTML=`<i data-lucide="${icon}" class="w-5 h-5"></i>`;
-  lucide.createIcons();
-  t.classList.remove('translate-y-24','opacity-0');
-  t.classList.add('translate-y-0','opacity-100');
-  setTimeout(()=>{t.classList.remove('translate-y-0','opacity-100');t.classList.add('translate-y-24','opacity-0');},3200);
-}
-</script>
+            // Widgets según class_type — count va en image_count / n
+            let genWidgets = [];
+            if (ct === 'NanoBanana2AIO' || ct === 'NanaBanana2AIO' || ct === 'NanoBananaPro_fal') {
+                genWidgets = [prompt, count, ratio, quality, 1.0, -1];
+            } else if (ct === 'GPTImage15_fal' || ct === 'GPTImage2_fal') {
+                genWidgets = [prompt, quality === '4K' ? 'hd' : 'standard', ratio, count, -1];
+            } else if (ct === 'FluxProKontext_fal' || ct === 'FluxPro_fal' || ct === 'FluxUltra_fal' || ct === 'FluxPro11_fal') {
+                genWidgets = [prompt, count, ratio, quality, -1];
+            } else {
+                genWidgets = [prompt, count, ratio, quality, -1];
+            }
+
+            // Nodos LoadImage de referencia
+            let refNodeIds = [];
+            for (let i = 0; i < refs; i++) {
+                const nid = ++lastNode;
+                refNodeIds.push(nid);
+                nodes.push({
+                    id: nid, type: 'LoadImage',
+                    pos: [30, 30 + i * 110], size: {'0': 250, '1': 95},
+                    flags: {}, order: i, mode: 0,
+                    inputs: [],
+                    outputs: [{ name: 'IMAGE', type: 'IMAGE', links: [] }],
+                    properties: { 'Node name for S&R': 'LoadImage' },
+                    widgets_values: ['referencia_producto_0' + (i+1) + '.png', 'image'],
+                    _meta: { title: 'Referencia ' + (i+1) }
+                });
+            }
+
+            const genId = ++lastNode;
+            const saveId = ++lastNode;
+
+            // Inputs del generador (refs si las hay)
+            let genInputs = refNodeIds.map((_, i) => ({
+                name: 'image_' + (i + 1), type: 'IMAGE', link: i + 1
+            }));
+
+            // Links de LoadImage → Generador
+            refNodeIds.forEach((rid, i) => {
+                const lid = i + 1;
+                lastLink = Math.max(lastLink, lid);
+                links.push({ id: lid, origin_id: rid, origin_slot: 0, target_id: genId, target_slot: i, type: 'IMAGE' });
+                nodes.find(n => n.id === rid).outputs[0].links.push(lid);
+            });
+
+            const imgLink = ++lastLink;
+
+            nodes.push({
+                id: genId, type: ct,
+                pos: [330, 80], size: {'0': 370, '1': 200},
+                flags: {}, order: refNodeIds.length, mode: 0,
+                inputs: genInputs,
+                outputs: [{ name: 'IMAGE', type: 'IMAGE', links: [imgLink] }],
+                properties: { 'Node name for S&R': ct },
+                widgets_values: genWidgets,
+                _meta: { title: ct }
+            });
+
+            nodes.push({
+                id: saveId, type: 'SaveImage',
+                pos: [750, 80], size: {'0': 260, '1': 110},
+                flags: {}, order: refNodeIds.length + 1, mode: 0,
+                inputs: [{ name: 'images', type: 'IMAGE', link: imgLink }],
+                outputs: [],
+                properties: { 'Node name for S&R': 'SaveImage' },
+                widgets_values: [prefix],
+                _meta: { title: 'Guardar Imagen' }
+            });
+
+            links.push({ id: imgLink, origin_id: genId, origin_slot: 0, target_id: saveId, target_slot: 0, type: 'IMAGE' });
+
+            return { last_node_id: saveId, last_link_id: lastLink, nodes, links, groups: [], config: {}, extra: {}, version: 0.4 };
+        }
+
+        function buildVideoWorkflow(prompt, prefix) {
+            const ct = appState.model;
+            const isRunway = ct === 'RunwayImageToVideoFLAMA';
+            const ratio = appState.ratio;
+            const duration = appState.duration || '5';
+            const frameCtrl = appState.frameControl || 'first';
+            const resolution = appState.res || '720p';
+            const variants = appState.vidVariants || 1;
+
+            let nodes = [], linksArr = [];
+            // Node ID counters — start after frame input nodes
+            let nodeIdCursor = 1;
+
+            // ── Frame input nodes (shared across all variants) ──
+            let loadId = null, endId = null;
+
+            if (frameCtrl === 'first') {
+                loadId = nodeIdCursor++;
+                nodes.push({ id: loadId, type: 'LoadImage', pos: [30, 200], size: {'0':250,'1':95}, flags:{}, order:0, mode:0, inputs:[], outputs:[{name:'IMAGE',type:'IMAGE',links:[]}], properties:{'Node name for S&R':'LoadImage'}, widgets_values:['frame_inicio_producto.png','image'], _meta:{title:'Frame Inicial'} });
+            } else if (frameCtrl === 'start-end') {
+                loadId = nodeIdCursor++;
+                endId = nodeIdCursor++;
+                nodes.push({ id: loadId, type: 'LoadImage', pos: [30, 80], size: {'0':250,'1':95}, flags:{}, order:0, mode:0, inputs:[], outputs:[{name:'IMAGE',type:'IMAGE',links:[]}], properties:{'Node name for S&R':'LoadImage'}, widgets_values:['frame_inicio.png','image'], _meta:{title:'Frame Inicio'} });
+                nodes.push({ id: endId, type: 'LoadImage', pos: [30, 240], size: {'0':250,'1':95}, flags:{}, order:1, mode:0, inputs:[], outputs:[{name:'IMAGE',type:'IMAGE',links:[]}], properties:{'Node name for S&R':'LoadImage'}, widgets_values:['frame_final.png','image'], _meta:{title:'Frame Final'} });
+            }
+
+            let lastLink = 0;
+
+            // ── Generate one set of nodes per variant ──
+            for (let v = 0; v < variants; v++) {
+                const xOffset = 330 + v * 420;
+                const yBase = 100;
+                const seed = v === 0 ? -1 : Math.floor(Math.random() * 999999);
+
+                const genId = nodeIdCursor++;
+                const saveId = isRunway ? null : nodeIdCursor++;
+
+                // Build input connections for this variant
+                let genInputs = [];
+                const linkToLoad = loadId ? ++lastLink : null;
+                const linkToEnd = endId ? ++lastLink : null;
+
+                if (loadId) {
+                    if (ct === 'Veo31_fal' || ct === 'Veo31Fast_fal') {
+                        genInputs.push({ name: 'first_frame', type: 'IMAGE', link: linkToLoad });
+                    } else if (ct === 'KlingOmniImageToVideo_fal') {
+                        genInputs.push({ name: 'start_image', type: 'IMAGE', link: linkToLoad });
+                        if (endId) genInputs.push({ name: 'end_image', type: 'IMAGE', link: linkToEnd });
+                    } else {
+                        genInputs.push({ name: 'image', type: 'IMAGE', link: linkToLoad });
+                    }
+                    // Register outgoing links on LoadImage node
+                    const loadNode = nodes.find(n => n.id === loadId);
+                    if (loadNode) loadNode.outputs[0].links.push(linkToLoad);
+                    if (endId && linkToEnd) {
+                        linksArr.push({ id: linkToEnd, origin_id: endId, origin_slot: 0, target_id: genId, target_slot: genInputs.length - 1, type: 'IMAGE' });
+                        const endNode = nodes.find(n => n.id === endId);
+                        if (endNode) endNode.outputs[0].links.push(linkToEnd);
+                    }
+                    linksArr.push({ id: linkToLoad, origin_id: loadId, origin_slot: 0, target_id: genId, target_slot: 0, type: 'IMAGE' });
+                }
+
+                // Build widgets
+                let genWidgets = [];
+                if (ct === 'KlingV3Pro_fal' || ct === 'KlingV3Standard_fal') {
+                    genWidgets = [prompt, duration, ratio, 'standard', 'blur, distort, low quality', 0.5, false, seed];
+                } else if (ct === 'Veo31_fal' || ct === 'Veo31Fast_fal') {
+                    genWidgets = [prompt, duration + 's', ratio, '1080p', false, seed];
+                } else if (ct === 'KlingOmniImageToVideo_fal') {
+                    genWidgets = [prompt, duration, 1, seed];
+                } else if (ct === 'SeedanceImageToVideo_fal' || ct === 'SeedanceProImageToVideo_fal') {
+                    genWidgets = [prompt, resolution.includes('1080') ? '1080p' : '720p', ratio, duration, false, seed];
+                } else if (ct === 'Sora2Pro_fal') {
+                    genWidgets = [prompt, ratio, '1080p', parseInt(duration), false, seed];
+                } else if (isRunway) {
+                    genWidgets = [prompt, duration, 'gen4.5', ratio, prefix + (variants > 1 ? '_v' + (v+1) : '')];
+                } else {
+                    genWidgets = [prompt, duration, ratio, seed];
+                }
+
+                const vidOutLink = isRunway ? null : ++lastLink;
+
+                nodes.push({
+                    id: genId, type: ct,
+                    pos: [xOffset, yBase], size: {'0':370,'1':210},
+                    flags:{}, order: genId - 1, mode:0,
+                    inputs: genInputs,
+                    outputs: [{ name: isRunway ? 'filepath' : 'video_url', type: 'STRING', links: isRunway ? [] : [vidOutLink] }],
+                    properties: {'Node name for S&R': ct},
+                    widgets_values: genWidgets,
+                    _meta: { title: ct + (variants > 1 ? ' v' + (v+1) : '') }
+                });
+
+                if (!isRunway) {
+                    nodes.push({
+                        id: saveId, type: 'SaveVideoFromURL',
+                        pos: [xOffset, yBase + 260], size: {'0':270,'1':110},
+                        flags:{}, order: genId, mode:0,
+                        inputs: [{ name: 'video_url', type: 'STRING', link: vidOutLink }],
+                        outputs: [],
+                        properties: {'Node name for S&R':'SaveVideoFromURL'},
+                        widgets_values: [prefix + (variants > 1 ? '_v' + (v+1) : '')],
+                        _meta: { title: 'Guardar Video' + (variants > 1 ? ' v' + (v+1) : '') }
+                    });
+                    linksArr.push({ id: vidOutLink, origin_id: genId, origin_slot: 0, target_id: saveId, target_slot: 0, type: 'STRING' });
+                }
+            }
+
+            const lastNodeId = nodes[nodes.length - 1].id;
+            return { last_node_id: lastNodeId, last_link_id: lastLink, nodes, links: linksArr, groups: [], config: {}, extra: {}, version: 0.4 };
+        }
+
+        // ── FIN MOTOR JSON CORRECTO ───────────────────────────────────────────
+
+        // SWITCH DARK / LIGHT
+        function setTheme(theme) {
+            const html = document.documentElement;
+            if (theme === 'light') {
+                html.classList.remove('dark');
+                html.classList.add('light');
+                document.getElementById('btn-dark').className = 'px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 text-slate-400 hover:text-white transition-all duration-200';
+                document.getElementById('btn-light').className = 'px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 bg-white text-slate-900 shadow transition-all duration-200';
+            } else {
+                html.classList.remove('light');
+                html.classList.add('dark');
+                document.getElementById('btn-dark').className = 'px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 bg-slate-600 text-white transition-all duration-200';
+                document.getElementById('btn-light').className = 'px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 text-slate-400 hover:text-white transition-all duration-200';
+            }
+            lucide.createIcons();
+        }
+
+        // COPIAR JSON AL PORTAPAPELES
+        function setImgVariants(n) {
+            appState.imgVariants = n;
+            [1,2,3,4].forEach(i => {
+                const btn = document.getElementById('iv-' + i);
+                if (!btn) return;
+                btn.className = i === n
+                    ? 'flex-1 py-2 text-xs font-bold rounded-lg border border-flama-500 bg-flama-500/10 text-flama-400 transition-all'
+                    : 'flex-1 py-2 text-xs font-bold rounded-lg border border-slate-700 text-slate-400 hover:text-white transition-all';
+            });
+            const badge = document.getElementById('img-variant-badge');
+            if (badge) badge.textContent = n + (n === 1 ? ' imagen' : ' imágenes');
+            const note = document.getElementById('img-cost-note');
+            if (note) {
+                const costs = { NanoBanana2AIO:0.04, NanaBanana2AIO:0.06, NanoBananaPro_fal:0.06, GPTImage15_fal:0.054, GPTImage2_fal:0.054, FluxPro_fal:0.032, FluxUltra_fal:0.06, Imagen4Preview_fal:0.04 };
+                const uc = costs[appState.model] || 0.05;
+                note.textContent = n > 1 ? n + ' × $' + uc + ' = $' + (uc * n).toFixed(3) + ' USD por ejecución' : '';
+                note.className = 'text-[10px] font-mono mt-1 ' + (n > 1 ? 'text-amber-400' : 'text-slate-500');
+            }
+            updateConfig();
+        }
+
+        function setVidVariants(n) {
+            appState.vidVariants = n;
+            [1,2,3,4].forEach(i => {
+                const btn = document.getElementById('vv-' + i);
+                if (!btn) return;
+                btn.className = i === n
+                    ? 'flex-1 py-2 text-xs font-bold rounded-lg border border-flama-500 bg-flama-500/10 text-flama-400 transition-all'
+                    : 'flex-1 py-2 text-xs font-bold rounded-lg border border-slate-700 text-slate-400 hover:text-white transition-all';
+            });
+            const badge = document.getElementById('vid-variant-badge');
+            if (badge) badge.textContent = n + (n === 1 ? ' clip' : ' clips');
+            const note = document.getElementById('vid-cost-note');
+            if (note) {
+                const costs = { KlingV3Pro_fal:0.50, Veo31_fal:0.80, Veo31Fast_fal:0.50, KlingV3Standard_fal:0.30, KlingOmniImageToVideo_fal:0.40, SeedanceImageToVideo_fal:1.21, Sora2Pro_fal:2.00, RunwayImageToVideoFLAMA:0.50 };
+                const uc = costs[appState.model] || 0.50;
+                note.innerHTML = n > 1 ? '<span class="text-amber-400">⚠ ' + n + ' nodos paralelos — ' + n + ' × $' + uc + ' = $' + (uc * n).toFixed(2) + ' USD por ejecución</span>' : '';
+            }
+            updateConfig();
+        }
+
+        function copyToClipboard() {
+            const codeBlock = document.getElementById('json-code-block');
+            
+            // Crear elemento temporal para asegurar copiado impecable en iframes
+            const el = document.createElement('textarea');
+            el.value = codeBlock.textContent;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+
+            showToast('Workflow Copiado', 'Listo para importar (Ctrl+V) en ComfyUI.', 'copy');
+        }
+
+        // DESCARGAR JSON COMO ARCHIVO FUNCIONAL (.JSON)
+        function downloadWorkflow() {
+            const workflow = generateWorkflowJSON();
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(workflow, null, 2));
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", dataStr);
+            dlAnchorElem.setAttribute("download", `flama_workflow_${appState.model.toLowerCase()}.json`);
+            dlAnchorElem.click();
+
+            showToast('Descarga Iniciada', 'Arraastra el JSON directamente al canvas de ComfyUI.', 'download');
+        }
+
+        // MOSTRAR TOAST NOTIFICATION PREMIUM
+        function showToast(title, msg, icon) {
+            const toast = document.getElementById('toast');
+            const toastTitle = document.getElementById('toast-title');
+            const toastMsg = document.getElementById('toast-msg');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastTitle.textContent = title;
+            toastMsg.textContent = msg;
+            
+            // Asignar icono de Lucide
+            toastIcon.innerHTML = `<i data-lucide="${icon}" class="w-5 h-5"></i>`;
+            lucide.createIcons();
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3500);
+        }
+
+        // RENDERIZADOR DEL DIAGRAMA DE NODOS (INTERACTIVO EN TIEMPO REAL)
+        function renderCanvasNodes() {
+            const container = document.getElementById('nodes-container');
+            container.innerHTML = '';
+
+            let nodesHTML = '';
+            let connections = []; // Guardará mapeos de puertos para dibujar las líneas
+
+            if (appState.mode === 'image') {
+                // NODOS DE CARGA DE IMÁGENES DE REFERENCIA
+                for(let i = 1; i <= appState.refs; i++) {
+                    const topPos = 40 + (i - 1) * 75;
+                    nodesHTML += `
+                        <div id="node-${i}" class="absolute pointer-events-auto bg-slate-900 border border-slate-800 rounded-xl w-56 shadow-2xl p-3" style="left: 60px; top: ${topPos}px;">
+                            <div class="flex justify-between items-center border-b border-slate-800 pb-1.5 mb-2">
+                                <span class="text-[11px] font-bold font-mono text-slate-400">LoadImage</span>
+                                <span class="text-[9px] font-mono text-emerald-400 bg-emerald-950 px-1 py-0.2 rounded border border-emerald-900">ID: ${i}</span>
+                            </div>
+                            <div class="text-[10px] text-slate-500 font-mono truncate">referencia_producto_0${i}.png</div>
+                            
+                            <!-- Puerto de Salida -->
+                            <div class="flex justify-end items-center mt-3 pt-1 border-t border-slate-800/50">
+                                <span class="text-[9px] font-mono text-slate-400 mr-2">IMAGE</span>
+                                <div id="port-out-${i}" class="w-3.5 h-3.5 rounded-full bg-orange-500 border-2 border-slate-900 hover:scale-125 transition-transform cursor-pointer"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // NODO GENERADOR DE IMAGEN (GPT / NANO)
+                const genNodeId = appState.refs + 1;
+                const genHeight = 120 + (appState.refs * 22);
+                nodesHTML += `
+                    <div id="node-${genNodeId}" class="absolute pointer-events-auto bg-slate-900 border-2 border-flama-500/80 rounded-2xl w-80 shadow-[0_0_30px_rgba(240,43,15,0.15)] p-4" style="left: 390px; top: 60px;">
+                        <div class="flex justify-between items-center border-b border-flama-500/30 pb-2 mb-3">
+                            <span class="text-xs font-bold font-mono text-flama-400">${appState.model}</span>
+                            <span class="text-[9px] font-mono text-flama-300 bg-flama-950 px-1.5 py-0.5 rounded border border-flama-900">ID: ${genNodeId}</span>
+                        </div>
+                        
+                        <!-- Puertos de Entrada -->
+                        <div class="space-y-2 mt-2">
+                            ${Array.from({length: appState.refs}).map((_, i) => `
+                                <div class="flex justify-start items-center gap-2">
+                                    <div id="port-in-${genNodeId}-ref-${i+1}" class="w-3.5 h-3.5 rounded-full bg-orange-500 border-2 border-slate-900 hover:scale-125 transition-transform cursor-pointer"></div>
+                                    <span class="text-[9px] font-mono text-slate-400">image_${i+1} (ID: ${i+1})</span>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <!-- Propiedades Internas -->
+                        <div class="mt-4 pt-3 border-t border-slate-800 space-y-1.5">
+                            <div class="text-[10px] text-slate-400"><strong class="text-slate-300">Prompt:</strong> "${appState.prompt.substring(0, 45)}..."</div>
+                            <div class="text-[10px] text-slate-400"><strong class="text-slate-300">Aspect Ratio:</strong> ${appState.ratio}</div>
+                            <div class="text-[10px] text-slate-400"><strong class="text-slate-300">Quality:</strong> ${appState.res === '4K' ? '4K (Ultra)' : '2K (Premium)'}</div>
+                        </div>
+
+                        <!-- Puerto de Salida -->
+                        <div class="flex justify-end items-center mt-4 pt-2 border-t border-slate-800">
+                            <span class="text-[9px] font-mono text-slate-400 mr-2">IMAGE</span>
+                            <div id="port-out-${genNodeId}" class="w-3.5 h-3.5 rounded-full bg-orange-500 border-2 border-slate-900 hover:scale-125 transition-transform cursor-pointer"></div>
+                        </div>
+                    </div>
+                `;
+
+                // NODO DE SALIDA (SAVE IMAGE)
+                const saveNodeId = appState.refs + 2;
+                const imgV = appState.imgVariants || 1;
+                const imgIcons = Array.from({length: imgV}, (_, i) =>
+                    `<div class="w-7 h-7 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center text-[9px] font-mono text-flama-400 font-bold">${i+1}</div>`
+                ).join('');
+                nodesHTML += `
+                    <div id="node-${saveNodeId}" class="absolute pointer-events-auto bg-slate-900 border border-slate-800 rounded-xl w-64 shadow-2xl p-3" style="left: 800px; top: 120px; position: absolute;">
+                        <!-- Badge de variantes flotante -->
+                        ${imgV > 1 ? `<div class="absolute -top-3 -right-3 bg-flama-500 text-white text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center shadow-lg shadow-flama-500/40 z-10">×${imgV}</div>` : ''}
+                        <div class="flex justify-between items-center border-b border-slate-800 pb-1.5 mb-2">
+                            <span class="text-[11px] font-bold font-mono text-slate-400">SaveImage</span>
+                            <span class="text-[9px] font-mono text-emerald-400 bg-emerald-950 px-1 py-0.5 rounded border border-emerald-900">ID: ${saveNodeId}</span>
+                        </div>
+                        <!-- Puerto de Entrada -->
+                        <div class="flex justify-start items-center gap-2 mb-3">
+                            <div id="port-in-${saveNodeId}" class="w-3.5 h-3.5 rounded-full bg-orange-500 border-2 border-slate-900 hover:scale-125 transition-transform cursor-pointer"></div>
+                            <span class="text-[9px] font-mono text-slate-400">images (ID: ${genNodeId})</span>
+                        </div>
+                        <!-- Info de variantes -->
+                        <div class="bg-slate-950/80 border border-slate-800 rounded-lg p-2">
+                            <div class="text-[9px] font-mono text-slate-500 mb-1.5">GENERARÁ</div>
+                            <div class="flex items-center gap-1.5 flex-wrap">${imgIcons}</div>
+                            <div class="mt-2 text-[10px] font-bold ${imgV > 1 ? 'text-flama-400' : 'text-slate-400'}">
+                                ${imgV} ${imgV === 1 ? 'imagen' : 'imágenes'} · ${appState.res} · ${appState.ratio}
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Registrar Conexiones de Entrada al Generador
+                for(let i = 1; i <= appState.refs; i++) {
+                    connections.push({ from: `port-out-${i}`, to: `port-in-${genNodeId}-ref-${i}` });
+                }
+                // Conexión Generador a SaveImage
+                connections.push({ from: `port-out-${genNodeId}`, to: `port-in-${saveNodeId}` });
+
+            } else {
+                // WORKFLOWS DE VIDEO
+                let nodeIndex = 1;
+                let firstFrameId = "";
+                let endFrameId = "";
+
+                // NODO DE FOTOGRAMA INICIAL (NANO BANANA GENERATOR)
+                if (appState.frameControl === 'first') {
+                    nodesHTML += `
+                        <div id="node-1" class="absolute pointer-events-auto bg-slate-900 border border-slate-800 rounded-xl w-64 shadow-2xl p-3" style="left: 40px; top: 50px;">
+                            <div class="flex justify-between items-center border-b border-slate-800 pb-1.5 mb-2">
+                                <span class="text-[11px] font-bold font-mono text-flama-400">NanoBanana2AIO</span>
+                                <span class="text-[9px] font-mono text-emerald-400 bg-emerald-950 px-1 py-0.2 rounded border border-emerald-900">ID: 1</span>
+                            </div>
+                            <div class="text-[10px] text-slate-400 mb-1"><strong class="text-slate-300">Uso:</strong> Generar primer frame</div>
+                            <div class="text-[9px] text-slate-500 font-mono truncate">Size: 2K | Aspect: ${appState.ratio}</div>
+                            
+                            <!-- Puerto de Salida -->
+                            <div class="flex justify-end items-center mt-3 pt-1 border-t border-slate-800/50">
+                                <span class="text-[9px] font-mono text-slate-400 mr-2">IMAGE</span>
+                                <div id="port-out-1" class="w-3.5 h-3.5 rounded-full bg-orange-500 border-2 border-slate-900 hover:scale-125 transition-transform cursor-pointer"></div>
+                            </div>
+                        </div>
+                    `;
+                    firstFrameId = "1";
+                    nodeIndex = 2;
+                } else if (appState.frameControl === 'start-end') {
+                    // DOS NODOS LOAD IMAGE PARA INICIO Y FIN
+                    nodesHTML += `
+                        <div id="node-1" class="absolute pointer-events-auto bg-slate-900 border border-slate-800 rounded-xl w-56 shadow-2xl p-3" style="left: 40px; top: 40px;">
+                            <div class="flex justify-between items-center border-b border-slate-800 pb-1.5 mb-2">
+                                <span class="text-[11px] font-bold font-mono text-slate-400">LoadImage (Start)</span>
+                                <span class="text-[9px] font-mono text-emerald-400 bg-emerald-950 px-1 py-0.2 rounded border border-emerald-900">ID: 1</span>
+                            </div>
+                            <div class="text-[10px] text-slate-500 font-mono truncate">frame_inicio_producto.png</div>
+                            <div class="flex justify-end items-center mt-3 pt-1 border-t border-slate-800/50">
+                                <span class="text-[9px] font-mono text-slate-400 mr-2">IMAGE</span>
+                                <div id="port-out-1" class="w-3.5 h-3.5 rounded-full bg-orange-500 border-2 border-slate-900 hover:scale-125 transition-transform cursor-pointer"></div>
+                            </div>
+                        </div>
+
+                        <div id="node-2" class="absolute pointer-events-auto bg-slate-900 border border-slate-800 rounded-xl w-56 shadow-2xl p-3" style="left: 40px; top: 220px;">
+                            <div class="flex justify-between items-center border-b border-slate-800 pb-1.5 mb-2">
+                                <span class="text-[11px] font-bold font-mono text-slate-400">LoadImage (End)</span>
+                                <span class="text-[9px] font-mono text-emerald-400 bg-emerald-950 px-1 py-0.2 rounded border border-emerald-900">ID: 2</span>
+                            </div>
+                            <div class="text-[10px] text-slate-500 font-mono truncate">frame_fin_producto.png</div>
+                            <div class="flex justify-end items-center mt-3 pt-1 border-t border-slate-800/50">
+                                <span class="text-[9px] font-mono text-slate-400 mr-2">IMAGE</span>
+                                <div id="port-out-2" class="w-3.5 h-3.5 rounded-full bg-orange-500 border-2 border-slate-900 hover:scale-125 transition-transform cursor-pointer"></div>
+                            </div>
+                        </div>
+                    `;
+                    firstFrameId = "1";
+                    endFrameId = "2";
+                    nodeIndex = 3;
+                }
+
+                // NODO DE VIDEO (MOTOR PRINCIPAL)
+                const videoGenId = nodeIndex.toString();
+                const nodeTop = appState.frameControl === 'start-end' ? 100 : 70;
+                
+                // Determinamos qué puerto de entrada tiene el motor de video
+                let videoInputPortName = "image";
+                if (appState.model === 'Veo31_fal' || appState.model === 'Veo31Fast_fal') {
+                    videoInputPortName = "first_frame";
+                } else if (appState.model === 'KlingOmniImageToVideo_fal') {
+                    videoInputPortName = "start_image";
+                }
+
+                nodesHTML += `
+                    <div id="node-${videoGenId}" class="absolute pointer-events-auto bg-slate-900 border-2 border-flama-500/80 rounded-2xl w-80 shadow-[0_0_30px_rgba(240,43,15,0.15)] p-4" style="left: 380px; top: ${nodeTop}px;">
+                        <div class="flex justify-between items-center border-b border-flama-500/30 pb-2 mb-3">
+                            <span class="text-xs font-bold font-mono text-flama-400">${appState.model}</span>
+                            <span class="text-[9px] font-mono text-flama-300 bg-flama-950 px-1.5 py-0.5 rounded border border-flama-900">ID: ${videoGenId}</span>
+                        </div>
+
+                        <!-- Puertos de Entrada -->
+                        <div class="space-y-2 mt-2">
+                            ${firstFrameId !== "" ? `
+                                <div class="flex justify-start items-center gap-2">
+                                    <div id="port-in-${videoGenId}-first" class="w-3.5 h-3.5 rounded-full bg-orange-500 border-2 border-slate-900 hover:scale-125 transition-transform cursor-pointer"></div>
+                                    <span class="text-[9px] font-mono text-slate-400">${videoInputPortName} (ID: ${firstFrameId})</span>
+                                </div>
+                            ` : ''}
+
+                            ${endFrameId !== "" ? `
+                                <div class="flex justify-start items-center gap-2">
+                                    <div id="port-in-${videoGenId}-end" class="w-3.5 h-3.5 rounded-full bg-orange-500 border-2 border-slate-900 hover:scale-125 transition-transform cursor-pointer"></div>
+                                    <span class="text-[9px] font-mono text-slate-400">end_image (ID: ${endFrameId})</span>
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        <!-- Propiedades Internas -->
+                        <div class="mt-4 pt-3 border-t border-slate-800 space-y-1.5">
+                            <div class="text-[10px] text-slate-400"><strong class="text-slate-300">Prompt:</strong> "${appState.prompt.substring(0, 45)}..."</div>
+                            <div class="text-[10px] text-slate-400"><strong class="text-slate-300">Aspect Ratio:</strong> ${appState.ratio}</div>
+                            <div class="text-[10px] text-slate-400"><strong class="text-slate-300">Duración:</strong> ${appState.duration} segundos</div>
+                        </div>
+
+                        <!-- Puerto de Salida (Video URL / File) -->
+                        <div class="flex justify-end items-center mt-4 pt-2 border-t border-slate-800">
+                            <span class="text-[9px] font-mono text-slate-400 mr-2">${appState.model === 'RunwayImageToVideoFLAMA' ? 'AUTO_SAVE' : 'STRING (URL)'}</span>
+                            ${appState.model !== 'RunwayImageToVideoFLAMA' ? `
+                                <div id="port-out-${videoGenId}" class="w-3.5 h-3.5 rounded-full bg-orange-500 border-2 border-slate-900 hover:scale-125 transition-transform cursor-pointer"></div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+
+                // NODO DE ALMACENAMIENTO DE VIDEO (SaveVideoFromURL - Solo si no es Runway local)
+                if (appState.model !== 'RunwayImageToVideoFLAMA') {
+                    const saverId = (nodeIndex + 1).toString();
+                    const vidV = appState.vidVariants || 1;
+                    const clipIcons = Array.from({length: vidV}, (_, i) =>
+                        `<div class="w-7 h-7 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center text-[9px] font-mono text-flama-400 font-bold">${i+1}</div>`
+                    ).join('');
+                    nodesHTML += `
+                        <div id="node-${saverId}" class="absolute pointer-events-auto bg-slate-900 border border-slate-800 rounded-xl w-64 shadow-2xl p-3" style="left: 770px; top: ${nodeTop + 40}px;">
+                            <!-- Badge de variantes flotante -->
+                            ${vidV > 1 ? `<div class="absolute -top-3 -right-3 bg-flama-500 text-white text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center shadow-lg shadow-flama-500/40 z-10">×${vidV}</div>` : ''}
+                            <div class="flex justify-between items-center border-b border-slate-800 pb-1.5 mb-2">
+                                <span class="text-[11px] font-bold font-mono text-slate-400">SaveVideoFromURL</span>
+                                <span class="text-[9px] font-mono text-emerald-400 bg-emerald-950 px-1 py-0.5 rounded border border-emerald-900">ID: ${saverId}</span>
+                            </div>
+                            <!-- Puerto de Entrada -->
+                            <div class="flex justify-start items-center gap-2 mb-3">
+                                <div id="port-in-${saverId}" class="w-3.5 h-3.5 rounded-full bg-orange-500 border-2 border-slate-900 hover:scale-125 transition-transform cursor-pointer"></div>
+                                <span class="text-[9px] font-mono text-slate-400">video_url (ID: ${videoGenId})</span>
+                            </div>
+                            <!-- Info de variantes -->
+                            <div class="bg-slate-950/80 border border-slate-800 rounded-lg p-2">
+                                <div class="text-[9px] font-mono text-slate-500 mb-1.5">GUARDARÁ</div>
+                                <div class="flex items-center gap-1.5 flex-wrap">${clipIcons}</div>
+                                <div class="mt-2 text-[10px] font-bold ${vidV > 1 ? 'text-flama-400' : 'text-slate-400'}">
+                                    ${vidV} ${vidV === 1 ? 'clip' : 'clips'} · ${appState.duration}s · ${appState.ratio}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    // Conexión Generador a Guardar URL
+                    connections.push({ from: `port-out-${videoGenId}`, to: `port-in-${saverId}` });
+                }
+
+                // Registrar Conexiones de Entrada al Generador
+                if (firstFrameId !== "") {
+                    connections.push({ from: `port-out-${firstFrameId}`, to: `port-in-${videoGenId}-first` });
+                }
+                if (endFrameId !== "") {
+                    connections.push({ from: `port-out-${endFrameId}`, to: `port-in-${videoGenId}-end` });
+                }
+            }
+
+            // Insertar Nodos al DOM
+            container.innerHTML = nodesHTML;
+
+            // Esperar un frame de dibujo para calcular exactamente la posición de los cables SVG
+            setTimeout(() => {
+                drawConnections(connections);
+            }, 30);
+        }
+
+        // DIBUJAR LÍNEAS DE CONEXIÓN ENTRE PUERTOS USANDO CURVAS BEZIER
+        function drawConnections(connectionsList = []) {
+            const svg = document.getElementById('connections-svg');
+            const workspace = document.getElementById('canvas-workspace');
+            
+            // Si la pestaña actual no es el canvas, omitir cálculo para evitar errores de renderizado
+            if (appState.activeVisualTab !== 'canvas') return;
+
+            svg.innerHTML = '';
+            
+            // Si no nos pasan una lista explícita, recalculamos las conexiones del workflow activo
+            if (!Array.isArray(connectionsList) || connectionsList.length === 0) {
+                // Recuperar la lista según el modo actual
+                if (appState.mode === 'image') {
+                    const genId = appState.refs + 1;
+                    const saveId = appState.refs + 2;
+                    for (let i = 1; i <= appState.refs; i++) {
+                        connectionsList.push({ from: `port-out-${i}`, to: `port-in-${genId}-ref-${i}` });
+                    }
+                    connectionsList.push({ from: `port-out-${genId}`, to: `port-in-${saveId}` });
+                } else {
+                    let nodeIndex = 1;
+                    let firstFrameId = "";
+                    let endFrameId = "";
+
+                    if (appState.frameControl === 'first') {
+                        firstFrameId = "1";
+                        nodeIndex = 2;
+                    } else if (appState.frameControl === 'start-end') {
+                        firstFrameId = "1";
+                        endFrameId = "2";
+                        nodeIndex = 3;
+                    }
+
+                    const videoGenId = nodeIndex.toString();
+                    if (firstFrameId !== "") {
+                        connectionsList.push({ from: `port-out-${firstFrameId}`, to: `port-in-${videoGenId}-first` });
+                    }
+                    if (endFrameId !== "") {
+                        connectionsList.push({ from: `port-out-${endFrameId}`, to: `port-in-${videoGenId}-end` });
+                    }
+                    
+                    if (appState.model !== 'RunwayImageToVideoFLAMA') {
+                        const saverId = (nodeIndex + 1).toString();
+                        connectionsList.push({ from: `port-out-${videoGenId}`, to: `port-in-${saverId}` });
+                    }
+                }
+            }
+
+            const workspaceRect = workspace.getBoundingClientRect();
+
+            connectionsList.forEach(conn => {
+                const outElem = document.getElementById(conn.from);
+                const inElem = document.getElementById(conn.to);
+
+                if (outElem && inElem) {
+                    const outRect = outElem.getBoundingClientRect();
+                    const inRect = inElem.getBoundingClientRect();
+
+                    // Coordenadas relativas al workspace de ComfyUI
+                    const x1 = (outRect.left + outRect.width / 2) - workspaceRect.left;
+                    const y1 = (outRect.top + outRect.height / 2) - workspaceRect.top;
+                    const x2 = (inRect.left + inRect.width / 2) - workspaceRect.left;
+                    const y2 = (inRect.top + inRect.height / 2) - workspaceRect.top;
+
+                    // Curvatura del cable (Estilo ComfyUI)
+                    const controlOffset = Math.abs(x2 - x1) * 0.5;
+                    const d = `M ${x1} ${y1} C ${x1 + controlOffset} ${y1}, ${x2 - controlOffset} ${y2}, ${x2} ${y2}`;
+
+                    // Crear elementos SVG
+                    const pathGlow = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                    pathGlow.setAttribute("d", d);
+                    pathGlow.setAttribute("fill", "none");
+                    pathGlow.setAttribute("stroke", "rgba(249, 115, 22, 0.15)");
+                    pathGlow.setAttribute("stroke-width", "8");
+                    pathGlow.setAttribute("stroke-linecap", "round");
+
+                    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                    path.setAttribute("d", d);
+                    path.setAttribute("fill", "none");
+                    path.setAttribute("stroke", "#ff6e41");
+                    path.setAttribute("stroke-width", "3");
+                    path.setAttribute("stroke-linecap", "round");
+
+                    svg.appendChild(pathGlow);
+                    svg.appendChild(path);
+                }
+            });
+        }
+    </script>
 </body>
 </html>
